@@ -4,14 +4,13 @@ Repository content
 ------------------
 
 ### reduction_scripts_const
-    ###### This folder contains those scripts used for Bilby data reduction which
-    do not require adaptation for each user experiment:
-        -"SANSDataProcessor.py" is the main script sitting in the following folder:
-        [root] \MantidInstall\plugins\python\algorithms\WorkflowAlgorithms
+###### This folder contains those scripts used for Bilby data reduction which do not require adaptation for each user experiment
+-"SANSDataProcessor.py" is the main script sitting in the following folder:
+[root] \MantidInstall\plugins\python\algorithms\WorkflowAlgorithms
 
-        -"shift_assembled.csv" is the table which contains values for tube position correction
+-"shift_assembled.csv" is the table which contains values for tube position correction
 
-        -"BilbyCustomFunctions_Reduction.py" is a set of subroutines used for the Bilby data reduction
+-"BilbyCustomFunctions_Reduction.py" is a set of subroutines used for the Bilby data reduction
 
 ### example_data_reduction_settings
     ###### This folder contains set of experimental files and files to be customised for every new data set
