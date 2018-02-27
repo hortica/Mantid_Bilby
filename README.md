@@ -5,7 +5,7 @@ Repository content
 
 ### reduction_scripts_const
     ###### This folder contains those scripts used for Bilby data reduction which
-    do not require adaptation for each user experiment.
+    do not require adaptation for each user experiment:
         -"SANSDataProcessor.py" is the main script sitting in the following folder:
         [root] \MantidInstall\plugins\python\algorithms\WorkflowAlgorithms
 
