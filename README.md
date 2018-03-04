@@ -11,7 +11,7 @@ Scripts for [BILBY SANS instrument](http://www.ansto.gov.au/ResearchHub/OurInfra
 - set of experimental `*.tar` files
 - [`input_csv_background_6123.csv`](/example_data_reduction_settings/input_csv_background_6123.csv) file is a formatted list of input data;
 - [`mantid_reduction_background_6123.csv`](/example_data_reduction_settings/mantid_reduction_background_6123.csv) is a formatted list of data reduction setting
--  [`reducer_example.py`](/example_data_reduction_settings/reducer_example.py) is a reducer file which shall be updated for each set of data; only a block between Lines 15-27 shall be updated indicating requested data reduction settings along with a set of the data files to be reduced
+-  [`reducer_example.py`](/example_data_reduction_settings/reducer_example.py) is a reducer file which shall be updated for each set of data; only a block between [lines 15-27](/example_data_reduction_settings/reducer_example.py#L15-L27) shall be updated indicating requested data reduction settings along with a set of the data files to be reduced
 - `*mask*.xml`: masks files created for any separate data set
 
 ### additional_scripts
