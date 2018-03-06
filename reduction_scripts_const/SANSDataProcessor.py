@@ -344,17 +344,17 @@ class SANSDataProcessor(DataProcessorAlgorithm):
             deltar = 5.0  # Virtual ring width on the detector (mm). Hardcoded. Not sure it is a good way to go.
 
             try:
-                sourceapertureradius = ws_sam.run().getProperty("SourceApertureRadius").value
-                self.sanslog.information("SourceApertureRadius " + SourceApertureRadius)
+                sourceapertureradius = float(ws_sam.run().getProperty("source_aperture").value) / 2.0
+                #self.sanslog.information('sourceapertureradius is fine')       
             except:
                 sourceapertureradius = 20.0  # radius in mm
-                self.sanslog.warning("SourceApertureRadius value cannot be retrieved; generic value of 20mm taken")
+                self.sanslog.warning("sourceapertureradius value cannot be retrieved; generic value of 20mm taken")
             try:
-                sampleapertureradius = ws_sam.run().getProperty("SampleApertureRadius").value
-                self.sanslog.information("SampleApertureRadius " + SampleApertureRadius)
+                sampleapertureradius = float(ws_sam.run().getProperty("sample_aperture").value) / 2.0
+                #self.sanslog.information("sampleapertureradius " + sampleapertureradius)
             except:
                 sampleapertureradius = 6.25  # radius in mm
-                self.sanslog.warning("SampleApertureRadius value cannot be retrieved; generic value of 6.25mm taken")
+                self.sanslog.error("sampleapertureradius value cannot be retrieved; generic value of 6.25mm taken")
 
             # creating empty array for SigmaModerator
             # SigmaModerator is a mandatory parameter for ISIS, but not needed for the reactor facility
