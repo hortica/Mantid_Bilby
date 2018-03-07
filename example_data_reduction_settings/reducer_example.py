@@ -12,10 +12,10 @@ ansto_logger = Logger("AnstoDataReduction")
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # INPUT - mandatory from a USER - START
 ###########################################################################################
-red_settings = FileFinder.getFullPath('mantid_reduction_background_6123.csv')
+red_settings = FileFinder.getFullPath('mantid_reduction_backgr_6123.csv')
 
 # INPUT - index of a line with reduction parameters
-index_reduction_settings = ["0"] # INDEX OF THE LINE WITH REDUCTION SETTINGS
+index_reduction_settings = ["1"] # INDEX OF THE LINE WITH REDUCTION SETTINGS
     
 if len(index_reduction_settings) > 1: # must be single choice
     raise ValueError('Please check your choice of reduction settigns; only single value is allowed')    
@@ -102,16 +102,6 @@ wavelength_interval_input = current_reduction_settings[0]["wavelength_intervals"
 wavelength_intervals = BilbyCustomFunctions_Reduction.string_boolean(wavelength_interval_input)
 wavelength_intervals_original = wavelength_intervals
 wav_delta = 0.0 # set the value, needed for the "wavelengh_slices" function
-   
-try:
-    Lt0 = float(ws_empty.run().getProperty("Lt0").value)  
-    Ltof_curtainl = float(ws_empty.run().getProperty("Ltof_curtainl").value)  
-    Ltof_curtainu = float(ws_empty.run().getProperty("Ltof_curtainu").value)  
-    Ltof_det = float(ws_empty.run().getProperty("Ltof_det").value) 
-    resolution_left_curtain = Lt0 / Ltof_curtainl
-    resolution_rear = Lt0 / Ltof_det
-except:
-    ansto_logger.warning("Lt0, Ltof_curtainl, Ltof_curtainu, Ltof_det are not defined") 
 
 # If needed to reduce 2D - this option is a defining one for the overall reduction
 reduce_2D_input = current_reduction_settings[0]["reduce_2D"].lower()
@@ -140,21 +130,22 @@ for current_file in files_to_reduce:
 #Errors: if trying to reduce time slice larger than the total time of the measurement:
 #Error message & Stop - to add
 
-    if ((not StartTime) and (EndTime)) or ((StartTime) and (not EndTime)) or ((StartTime) > (EndTime)):
-        raise ValueError("Check StartTime and EndTime values; either both or none shall be intered. EndTime cannot be smaller than StartTime.")    
-        
+    if ((not StartTime) and (EndTime)) or ((StartTime) and (not EndTime)):
+        raise ValueError("Check StartTime and EndTime values; either both or none shall be intered.")    
+    
     if (not StartTime) and (not EndTime):
         ws_sam = LoadBBY(sam_file)
         time_range = ''
+    elif (float(StartTime)) > (float(EndTime)):
+        raise ValueError("Check StartTime and EndTime values; EndTime cannot be smaller than StartTime.")            
     else:
         ws_sam = LoadBBY(sam_file)     # test loader: to check if given StartTime and EndTime are reasonable
         Real_EndTime_max = float(ws_sam.run().getProperty('bm_counts').value)
-        if ( (float(EndTime)) > Real_EndTime_max  * 1.1 ):
+        if ( float(EndTime) > Real_EndTime_max  * 1.1 ):
             raise ValueError('EndTime value is wrong, it is more than 10%% larger than the data collection time: %7.2f' %Real_EndTime_max)
         ws_sam = LoadBBY(sam_file, FilterByTimeStart = StartTime, FilterByTimeStop = EndTime)    # now to load file within requested time slice if values are feasible
         time_range = '_' + StartTime + '_' + EndTime
-      
-
+       
     # To read the mode value: True - ToF; False - NVS; this will define some steps inside SANSDataProcessor
     try:
         external_mode = (ws_sam.run().getProperty("is_tof").value)
@@ -175,7 +166,6 @@ for current_file in files_to_reduce:
             wavelength_intervals = wavelength_intervals_original    
             if wavelength_intervals:
                 wav_delta = float(current_reduction_settings[0]["wav_delta"]) # no need to read if the previous is false
-    #print "wavelength_intervals", wavelength_intervals
                 
     # empty beam scattering in transmission mode
     ws_emp_file = current_file["T_EmptyBeam"]+'.tar'
@@ -224,7 +214,6 @@ for current_file in files_to_reduce:
  
     # wavelenth intervals: building  binning_wavelength list 
     binning_wavelength, n = BilbyCustomFunctions_Reduction.wavelengh_slices(wavelength_intervals, binning_wavelength_ini, wav_delta)
-    #print "final wavelengths slices list", binning_wavelength
     
 ###############################################################
 # By now we know how many wavelengths bins we have, so shall run Q1D n times
