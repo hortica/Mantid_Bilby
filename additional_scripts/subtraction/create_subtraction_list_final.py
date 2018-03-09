@@ -7,7 +7,7 @@ import glob, csv, os
 
 # Set path where data sit
 ### straight '/' and '/' at the end of the line
-path_data = "D:\_work\projects\JohnWhite\Emulsions_dec2017\data\ready/"
+path_data = "D:/_work/projects/JohnWhite/Emulsions_dec2017/data/ready/"
 
 # Set mask for files selection; for example: *bby*12*2.0*20.0*.dat
 #mask = "*BBY00*5.0_9.0*.dat"

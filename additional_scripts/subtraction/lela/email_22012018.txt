@@ -1,6 +1,0 @@
-now I finally found a more proper error message in the logfiles,
-and there is need to have a name for the outputworkspace
-(for a reason I don't understand)
-
-LoadAscii(sub_file_output, SkipNumLines = 4,
-OutputWorkspace = sub_file_output_short)
