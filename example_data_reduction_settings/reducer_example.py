@@ -21,7 +21,7 @@ if len(index_reduction_settings) > 1: # must be single choice
     raise ValueError('Please check your choice of reduction settigns; only single value is allowed')    
 
 # ID to evaluate - INPUT, in any combination of 'a-b' or ',c', or empty line; empty line means evaluate all files listed in csv
-index_files_to_reduce = "0,1"  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
+index_files_to_reduce = "1"  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
 
 # Data file with numbers 
 path_tube_shift_correction = FileFinder.getFullPath('shift_assembled.csv')
