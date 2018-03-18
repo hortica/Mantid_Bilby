@@ -12,8 +12,8 @@ reload (BilbyCustomFunctions_Reduction)
 # NOTE output files will be created in the same folder where "subtraction_list" sits
 # Folder containing "subtraction_list" file must be on Mantid path, set in  "File-> Manage User Directories"
 # IF subtracted data file exists, it will be re-written
-subtraction_list = FileFinder.getFullPath('FileList_test_6255.csv') # main list of files to be scaled and subtracted; folder must be on Mantid path
-index_files_to_subtract = "0"                                                        # index(es) of pair to subtract
+subtraction_list = FileFinder.getFullPath('list_example.csv') # main list of files to be scaled and subtracted; folder must be on Mantid path
+index_files_to_subtract = "1"                                                        # index(es) of pair to subtract
 
 # USER input end
 
@@ -21,13 +21,14 @@ index_files_to_subtract = "0"                                                   
 # creating array of data from the input list
 parameters = BilbyCustomFunctions_Reduction.FilesListReduce(subtraction_list)
 files_to_subtract = BilbyCustomFunctions_Reduction.FilesToReduce(parameters, index_files_to_subtract)
-
+#mtd.clear()
 # reduce requested files one by one
 for current_file in files_to_subtract:                              
 
 # loading current sample + background pair
     sample_file = current_file["sample"]
     ws_sample_ini = LoadAscii(sample_file)                                 # load sample data
+    
     
     background_file = current_file["background"]    
     ws_bcgd_ini = LoadAscii(background_file)                                # load background data
@@ -43,7 +44,7 @@ for current_file in files_to_subtract:
         
     try:
         scale_subtr = float(current_file["scale_subtr"])                # const to subtract from the sample data
-        scale_subtr = scale_subtr*(-1)                                              # needed because "Scale" knows only how to add        
+        scale_subtr = scale_subtr*(-1)                                          # needed because "Scale" knows only how to add        
     except:
         scale_subtr = 0.0                                                              # if there is no value in the input file, default value is 0
     try:
@@ -59,8 +60,8 @@ for current_file in files_to_subtract:
     sub_file_output_short = sample_file[0:(len(sample_file)-4)] + "_sub.dat"
     sub_file_output = os.path.join(os.path.dirname(subtraction_list), sub_file_output_short) # path for the output file, based on location of the initial list
     
-    if os.path.exists(sub_file_output):           # check if it does exist; delete if yes - no avoid appending 
-       os.remove(sub_file_output)                 # ??? to check how does it know the path here ???
+    if os.path.exists(sub_file_output):            # check if it does exist; delete if yes - no avoid appending 
+       os.remove(sub_file_output)                  # ??? to check how does it know the path here ???
     if not os.path.exists(sub_file_output):     # check if it does exist; create if not - to prepare for data recording
         file = open(sub_file_output, 'w+')                     
         file.close()     
@@ -78,21 +79,24 @@ for current_file in files_to_subtract:
             wr.writerow(line)
 
 # creating new file, where X, Y, ErrY are taken from scaled/subtracted data, but the Xerror - i.e. sigmaQ - are copied from the original sample data
+    line_new_file = []
     for i in range(number_of_bins_sample):
         s = str(subtracted_data.readY(0)[i])
-        if s.find("nan") == -1:  # skip lines with nan; need proper testing, need examples
+        if s.find("nan") == -1:  # skip lines with nan; need proper testing
             line_new_file = ["%8.5f" %subtracted_data.readX(0)[i],   "%8.5f" %subtracted_data.readY(0)[i], \
-                                   "%8.5f" % subtracted_data.readE(0)[i], "%8.5f" %ws_sample_ini.readDx(0)[i]]
+                                     "%8.5f" % subtracted_data.readE(0)[i], "%8.5f" %ws_sample_ini.readDx(0)[i]]
             with open(sub_file_output, 'ab') as f_out:
                 wr = csv.writer(f_out, delimiter=',', lineterminator='\n')
                 wr.writerow(line_new_file)
         #else:
             #print "s nan" # temporary measure to see if some nan were found; to be deleted later
+    print number_of_bins_sample
 
 # Just subtracted data are loaded back to Mantid
 # It is still a question if to keep it here
 # For good practice, make a function out of this script and make this parameter a user' choice
-    LoadAscii(sub_file_output, Unit = "MomentumTransfer", OutputWorkspace = sub_file_output)
+    LoadAscii(sub_file_output, Unit = "MomentumTransfer", OutputWorkspace = sub_file_output_short)
+
 
 #============================================================================================================================================#
 #============================================================================================================================================#
