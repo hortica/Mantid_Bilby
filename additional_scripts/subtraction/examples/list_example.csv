@@ -1,5 +1,5 @@
-index,sample,background,scale_subtr,scale_mult
-,sample scattering 1D ASCII file name,background scattering 1D ASCII file name,const to be subtracted from the SAMPLE scattering data,"const, BACKGROUND data will be multiplied on"
-,,,,
-1,long.dat,short.dat,,
-2,short.dat,long.dat,,
+index,sample,background,scale_subtr,scale_mult,output_file_name,suffix
+,sample scattering 1D ASCII file name,background scattering 1D ASCII file name,const to be subtracted from the SAMPLE scattering data,"const, BACKGROUND data will be multiplied on","Can be left empty. In this case name will be built as ""sample + suffix + _sub.dat"" If this name is given, the output file will be named like that + suffix","Can be left empty. If given, will be added to the output name file. If the ""output_file_name"" is empty, the name will be built as ""sampe + suffix + _sub.dat"""
+,,,,,,
+1,long.dat,short.dat,,,,s1
+2,short.dat,long.dat,,,,s2
