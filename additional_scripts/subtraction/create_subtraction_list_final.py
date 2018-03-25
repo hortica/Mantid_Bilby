@@ -7,13 +7,12 @@ import glob, csv, os
 
 # Set path where data sit
 ### straight '/' and '/' at the end of the line
-path_data = "D:/_work/projects/JohnWhite/Emulsions_dec2017/data/ready/"
+path_data = "D:/Mantid_github/additional_scripts/subtraction/examples/"
 
 # Set mask for files selection; for example: *bby*12*2.0*20.0*.dat
-#mask = "*BBY00*5.0_9.0*.dat"
-mask = "BBY*"
+mask = "*.dat"
 
-list_file_name = "FileList_test_6255.csv"
+list_file_name = "list_example.csv"
 
 # NOTE: you will have file "selected_list.csv" in THE SAME folder where your initial data are; 
 # Remember, that for "subtraction_final.py" script it is recommended to set-up a new folder with input csv list, because all subtracted files will sit in there
@@ -37,12 +36,14 @@ if not os.path.exists(path_list_file_name):
     file = open(path_list_file_name, 'w+')
     file.close()
 
-header_1 = ['index', 'sample', 'background', 'scale_subtr', 'scale_mult']
+header_1 = ['index', 'sample', 'background', 'scale_subtr', 'scale_mult', 'output_file_name', 'suffix']
 
 header_2 = ['', 'sample scattering 1D ASCII file name',  \
 'background scattering 1D ASCII file name', \
 'const to be subtracted from the SAMPLE scattering data', \
-'const, BACKGROUND data will be multiplied on']
+'const, BACKGROUND data will be multiplied on',\
+'Can be left empty. In this case name will be [sample + suffix + _sub.dat]. If this name is given, the output file will be [name + suffix]',\
+'Can be left empty. If given, will be added to the output name file. If the [output_file_name] is empty, the name will be [sample + suffix + _sub.dat]']
 
 with open(path_list_file_name, 'ab') as f_out:
     wr = csv.writer(f_out, delimiter=',', lineterminator='\n')

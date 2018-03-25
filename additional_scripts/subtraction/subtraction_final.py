@@ -13,7 +13,7 @@ reload (BilbyCustomFunctions_Reduction)
 # Folder containing "subtraction_list" file must be on Mantid path, set in  "File-> Manage User Directories"
 # IF subtracted data file exists, it will be re-written
 subtraction_list = FileFinder.getFullPath('list_example.csv') # main list of files to be scaled and subtracted; folder must be on Mantid path
-index_files_to_subtract = "1,2"                                                        # index(es) of pair to subtract
+index_files_to_subtract = ""                                                        # index(es) of pair to subtract
 
 # USER input end
 
