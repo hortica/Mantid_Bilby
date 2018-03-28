@@ -121,6 +121,9 @@ if reduce_2D:
  # Calling function to read given csv file   
 parameters = BilbyCustomFunctions_Reduction.FilesListReduce(csv_files_to_reduce_list)
 files_to_reduce = BilbyCustomFunctions_Reduction.FilesToReduce(parameters, index_files_to_reduce)
+if len(files_to_reduce) == 0:
+    raise ValueError('Please check index_files_to_reduce; chosen one does not exist')    
+
 # reduce requested files one by one
 for current_file in files_to_reduce:                              
     sam_file = current_file["Sample"]+'.tar'
