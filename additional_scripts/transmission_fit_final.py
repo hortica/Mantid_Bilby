@@ -4,20 +4,12 @@ from mantid.api import *
 
 #input parameters  ==============================================================================================
 #sample transmission, empty beam transmission, mask to select area to calculate transmissions
-transm_sam = "BBY0014747.tar"
-empty_beam = "BBY0014738.tar"
-mask_transm = "mask_transmission_6371_large.xml"
-
-
-#BBY0001898_T_EmptyBeam_longL2	BBY0001899_T_Sample_170_longL2	cokes_transm_huge_mask
-#BBY0001859_T_EmptyBeam	BBY0001860_T_Sample_170
-
-#BBY0001859_T_EmptyBeam	BBY0001903_T_Sample170_repeat_10min	cokes_transm_mask	
-#BBY0001893_EmptyBeam_longL2_10min	BBY0001894_t_s170_longL2_10min
-
+transm_sam = "BBY0014167.tar"
+empty_beam = "BBY0014172.tar"
+mask_transm = "transmission_mask_6286.xml"
 
 #binning
-binning_wavelength = [2.0, 0.05, 18.0]
+binning_wavelength = [3.0,8.5, 20.0]
 
 #load data  ======================================================================================================
 ws_sam_transm = LoadBBY(transm_sam)
@@ -61,6 +53,6 @@ DeleteWorkspace('_ws')
 DeleteWorkspace('test')
 
 #Calculating transmission
-transm_test = CalculateTransmission(ws_sam_transm_wave, ws_empty_wave, TransmissionROI = ws_tranROI, FitMethod = 'Polynomial', PolynomialOrder = '3', OutputUnfittedData = True)
+transm_S1_PS_PEO_IrCl3_formic_1 = CalculateTransmission(ws_sam_transm_wave, ws_empty_wave, TransmissionROI = ws_tranROI, FitMethod = 'Linear', PolynomialOrder = '3', OutputUnfittedData = True)
 #FitMethod = 'Polynomial', PolynomialOrder = '2'
 #FitMethod = 'Log' 'Linear'
