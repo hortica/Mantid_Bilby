@@ -1,5 +1,3 @@
-## SECOND ONE
-
 from mantid.api import *
 import csv
 import BilbyCustomFunctions_Reduction
@@ -12,8 +10,8 @@ reload (BilbyCustomFunctions_Reduction)
 # NOTE output files will be created in the same folder where "subtraction_list" sits
 # Folder containing "subtraction_list" file must be on Mantid path, set in  "File-> Manage User Directories"
 # IF subtracted data file exists, it will be re-written
-subtraction_list = FileFinder.getFullPath('list_example.csv') # main list of files to be scaled and subtracted; folder must be on Mantid path
-index_files_to_subtract = "2"                                                        # index(es) of pair to subtract
+subtraction_list = FileFinder.getFullPath('list_subtract_7156_part1.csv') # main list of files to be scaled and subtracted; folder must be on Mantid path
+index_files_to_subtract = "17"                                                        # index(es) of pair to subtract
 
 # USER input end
 
@@ -81,9 +79,11 @@ for current_file in files_to_subtract:
    
     if len(replaced_name) > 0:
        sub_file_output_short = replaced_name + name_suffix + ".dat"
+    elif len(name_suffix) > 0:
+        sub_file_output_short = sample_file[0:(len(sample_file.strip())-4)] + name_suffix + ".dat"
     else:
-        sub_file_output_short = sample_file[0:(len(sample_file)-4)] + name_suffix + "_sub.dat"
-
+        sub_file_output_short = sample_file[0:(len(sample_file.strip())-4)] + name_suffix + "_sub.dat"
+        
     sub_file_output = os.path.join(os.path.dirname(subtraction_list), sub_file_output_short) # path for the output file, based on location of the initial list
 
 # creating header from input data
