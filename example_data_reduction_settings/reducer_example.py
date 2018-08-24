@@ -6,6 +6,7 @@ from mantid.kernel import Logger
 
 import BilbyCustomFunctions_Reduction
 reload (BilbyCustomFunctions_Reduction)
+#import strip_end_nans
 
 ansto_logger = Logger("AnstoDataReduction")
 
@@ -247,13 +248,12 @@ for current_file in files_to_reduce:
                                   RadiusCut = RadiusCut, WaveCut = WaveCut, \
                                   WideAngleCorrection=wide_angle_correction, \
                                   Reduce_2D = reduce_2D, \
-                                  OutputWorkspace=base_output_name)
+                                  OutputWorkspace = base_output_name)
 
         #print mtd.getObjectNames()
         #print transmission_fit.getHistory()
 
 ### ================================================================================
-
         if reduce_2D:
             plot2Dgraph = plot2D(base_output_name)
             n_2D = output_workspace.name() + '.png'
@@ -264,6 +264,7 @@ for current_file in files_to_reduce:
             SaveNISTDAT(output_workspace.name(), SaveNxs)
             if not plot_2D: plot2Dgraph.close() # is there more elegant way to do it? Problem is that plot2Dgraph creates and plot the graph file at the same time...
         else:
+            BilbyCustomFunctions_Reduction.strip_NaNs(output_workspace, base_output_name)  
             if i == 0:
                 plot1Dgraph = plotSpectrum(output_workspace, 0, distribution=DistrFlag.DistrFalse,  clearWindow=False) # to create first graph to stick all the rest to it; perhaps there is more elegant way of creating initial empty handler, but I am not aware ... yet
             else:             

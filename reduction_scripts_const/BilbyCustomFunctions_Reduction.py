@@ -83,6 +83,23 @@ def FilesToReduce(parameters, evaluate_files):
            
     return files_to_reduce
 
+#######################################################################################
+             
+def strip_NaNs(output_workspace, base_output_name):
+    """  Strip NaNs from the 1D OutputWorkspace """ #add isinf
+
+    data = output_workspace.readY(0)
+    start_index = next((index for index in range(len(data)) if not math.isnan(data[index])), None)
+    end_index = next((index for index in range(len(data)-1, -1, -1) if not math.isnan(data[index])), None)
+
+    q_values = output_workspace.readX(0)
+    start_q = q_values[start_index]
+    end_q = q_values[end_index]            
+    
+    CropWorkspace(InputWorkspace = output_workspace, XMin = start_q, XMax = end_q, OutputWorkspace = base_output_name)
+
+    return base_output_name
+    
 ####################################################################################### 
 # GENERAL #########################################################################################
 ####################################################################################### 
