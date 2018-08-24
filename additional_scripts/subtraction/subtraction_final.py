@@ -37,18 +37,19 @@ for current_file in files_to_subtract:
       
     try:
         scale_subtr_ini = float(current_file["scale_subtr"])             # const to subtract from the sample data
-        scale_subtr = scale_subtr_ini*(-1)                                          # needed because "Scale" knows only how to add        
+        scale_subtr = scale_subtr_ini*(-1)                                       # needed because "Scale" knows only how to add        
     except:
-        scale_subtr_ini = 0.0                                                         # ini value is needed only for the logging into the result file, avoiding stuff like "-0"
-        scale_subtr = 0.0                                                              # if there is no value in the input file, default value is 0
+        scale_subtr_ini = 0.0                                                           # ini value is needed only for the logging into the result file, avoiding stuff like "-0"
+        scale_subtr = 0.0                                                                # if there is no value in the input file, default value is 0
 
-    name_suffix = str(current_file["suffix"])                           # name of the output file name
+    name_suffix = str(current_file["suffix"]).strip()                      # name of the output file name
+    
     if len(name_suffix) > 1:
         name_suffix = "_" + name_suffix
     else:
         name_suffix = ""                                                               # just add _sub to the sample files name to construct the output name       
 
-    replaced_name = str(current_file["output_file_name"])         # name of the output file name
+    replaced_name = str(current_file["output_file_name"]).strip()   # name of the output file name
     if len(replaced_name) == 0:
         replaced_name = ""                                                               # just add _sub to the sample files name to construct the output name       
 
@@ -83,7 +84,8 @@ for current_file in files_to_subtract:
         sub_file_output_short = sample_file[0:(len(sample_file.strip())-4)] + name_suffix + ".dat"
     else:
         sub_file_output_short = sample_file[0:(len(sample_file.strip())-4)] + name_suffix + "_sub.dat"
-        
+        print name_suffix
+        print name_suffix.strip()
     sub_file_output = os.path.join(os.path.dirname(subtraction_list), sub_file_output_short) # path for the output file, based on location of the initial list
 
 # creating header from input data
