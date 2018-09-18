@@ -13,10 +13,10 @@ ansto_logger = Logger("AnstoDataReduction")
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # INPUT - mandatory from a USER - START
 ###########################################################################################
-red_settings = FileFinder.getFullPath('mantid_reduction_backgr_6123.csv')
+red_settings = FileFinder.getFullPath('mantid_reduction_settings_example.csv')
 
 # INPUT - index of a line with reduction parameters
-index_reduction_settings = ["2"] # INDEX OF THE LINE WITH REDUCTION SETTINGS
+index_reduction_settings = ["1"] # INDEX OF THE LINE WITH REDUCTION SETTINGS
     
 if len(index_reduction_settings) > 1: # must be single choice
     raise ValueError('Please check your choice of reduction settigns; only single value is allowed')    
@@ -38,7 +38,7 @@ data_before_2016 = False # curtains moved/ aligned /extra shift applied
 data_before_May_2016 = False # Attenuators changed
 account_for_gravity = True #False
 solid_angle_weighting = True #False
-wide_angle_correction = True
+wide_angle_correction = False
 blocked_beam = True #False
 
 ######################################
@@ -266,14 +266,14 @@ for current_file in files_to_reduce:
         else:
             BilbyCustomFunctions_Reduction.strip_NaNs(output_workspace, base_output_name)  
             if i == 0:
-                plot1Dgraph = plotSpectrum(output_workspace, 0, distribution=DistrFlag.DistrFalse,  clearWindow=False) # to create first graph to stick all the rest to it; perhaps there is more elegant way of creating initial empty handler, but I am not aware ... yet
+                plot1Dgraph = plotSpectrum(base_output_name, 0, distribution=DistrFlag.DistrFalse,  clearWindow=False) # to create first graph to stick all the rest to it; perhaps there is more elegant way of creating initial empty handler, but I am not aware ... yet
             else:             
-                plot1Dgraph_continue = mergePlots(plot1Dgraph, plotSpectrum(output_workspace, 0, distribution=DistrFlag.DistrFalse, clearWindow=False))
+                plot1Dgraph_continue = mergePlots(plot1Dgraph, plotSpectrum(base_output_name, 0, distribution=DistrFlag.DistrFalse, clearWindow=False))
         
        #Section for file saving
-            n_1D = output_workspace.name() +".dat"       # 1D output file; name based on "base_output_name" construct
+            n_1D = base_output_name +".dat"       # 1D output file; name based on "base_output_name" construct
             savefile = os.path.join(os.path.expanduser(reduced_files_path), n_1D)          # setting up full path
-            SaveAscii(InputWorkspace = output_workspace, Filename = savefile, WriteXError = True, WriteSpectrumID = False, Separator = "CSV") #saving file
+            SaveAscii(InputWorkspace = base_output_name, Filename = savefile, WriteXError = True, WriteSpectrumID = False, Separator = "CSV") #saving file
             print savefile
             print "1D File Exists:", os.path.exists(savefile)            
 
