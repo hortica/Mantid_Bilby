@@ -11,24 +11,20 @@ Scripts for [BILBY SANS instrument](https://www.ansto.gov.au/user-access/instrum
 
 ##### other scripts
 
-- [`control_flux_sums.py`](/additional_scripts/subtraction/control_flux_sums.py) calculates flux for the transmision measurements, using cvs list as an input
+- [`control_flux_sums.py`](/additional_scripts/control_flux_sums.py) calculates flux for the transmision measurements, using cvs list as an input
 - [`sector_masking.py`](/additional_scripts/sector_masking.py) creates a sector mask
 - [`transmission_estimation_T_sample_blocked_beam_out.py`](/additional_scripts/transmission_estimation_T_sample_blocked_beam_out.py) estimates ratio between scattered and transmitted neutrons using a transmission mask as an input
-- [`transmission_fit.py`](/additional_scripts/transmission_fit.py) implements [CalculateTransmission](http://docs.mantidproject.org/nightly/algorithms/CalculateTransmission-v1.html) algorithm fora  given pair of a sample/empty beam transmission data sets 
+- [`transmission_fit.py`](/additional_scripts/transmission_fit.py) is a script to estimate using [CalculateTransmission](http://docs.mantidproject.org/nightly/algorithms/CalculateTransmission-v1.html) transmission fitted with functions available in Mantid
+
 
 ### example_data_reduction_settings
 #### This folder contains set of experimental files and files to be customised for every new data set
 - set of experimental `*.tar` files
-- [`input_csv_example.csv`](/example_data_reduction_settings/input_csv_background_6123.csv) file is a formatted list of input data
-- [`mantid_reduction_settings_example.csv`](/example_data_reduction_settings/mantid_reduction_background_6123.csv) is a formatted list of data reduction setting
+- [`input_csv_example.csv`](/example_data_reduction_settings/input_csv_example.csv) file is a formatted list of input data
+- [`mantid_reduction_settings_example.csv`](/example_data_reduction_settings/mantid_reduction_settings_example.csv) is a formatted list of data reduction setting
 -  [`reducer_example.py`](/example_data_reduction_settings/reducer_example.py) is a reducer file which shall be updated for each set of data; only a block between [lines 15-27](/example_data_reduction_settings/reducer_example.py#L15-L27) shall be updated indicating requested data reduction settings along with a set of the data files to be reduced
-- `*mask*.xml`: masks files created for any separate data set
-
-
-
-- [`transmission_fit.py`](/additional_scripts/transmission_fit.py) is a script to estimate transmission fitted with functions available in Mantid
-- [`transmission_estimation_T_sample_blocked_beam_out.py`](/additional_scripts/transmission_estimation_T_sample_blocked_beam_out.py) is a script to check chahces of the multiple scattering presence
-
+- `*mask*.xml`: transmission and scattering mask files made for any given data set
+- [`1d_data`](/example_data_reduction_settings/1d_data) 1D standard output AgBh file
 
 ### reduction_scripts_const
 #### This folder contains those scripts used for Bilby data reduction which do not require adaptation for each user experiment
