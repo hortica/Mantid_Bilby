@@ -1,4 +1,4 @@
-Scripts for [BILBY SANS instrument](http://www.ansto.gov.au/ResearchHub/OurInfrastructure/ACNS/Facilities/Instruments/Bilby/index.htm) data reduction and initial analysis
+Scripts for [BILBY SANS instrument](https://www.ansto.gov.au/user-access/instruments/neutron-scattering-instruments/bilby-small-angle-neutron-scattering) data reduction and initial analysis
 
 ### reduction_scripts_const
 #### This folder contains those scripts used for Bilby data reduction which do not require adaptation for each user experiment
