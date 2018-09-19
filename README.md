@@ -6,17 +6,15 @@ Scripts for [BILBY SANS instrument](https://www.ansto.gov.au/user-access/instrum
 
 ##### subtraction
 [`subtraction`](/additional_scripts/subtraction) contains set of scripts to prepare file for subtractions and execute it
-- [`create_subtraction_list.py`](/additional_scripts/subtraction/create_subtraction_list.py)
-- [`subtraction.py`](/additional_scripts/subtraction/subtraction.py)
+- [`create_subtraction_list.py`](/additional_scripts/subtraction/create_subtraction_list.py) creates the csv list for the subtraction
+- [`subtraction.py`](/additional_scripts/subtraction/subtraction.py) performs subtraction using cvs file written by a standard described in [`create_subtraction_list.py`](/additional_scripts/subtraction/create_subtraction_list.py) creates the csv list for the subtraction
 
 ##### other scripts
 
-[`control_flux_sums.py`](/additional_scripts/subtraction/control_flux_sums.py) to calculate flux 
-
-sector_masking.py
-transmission_estimation_T_sample_blocked_beam_out.py
-transmission_fit.py
-
+- [`control_flux_sums.py`](/additional_scripts/subtraction/control_flux_sums.py) calculates flux for the transmision measurements, using cvs list as an input
+- [`sector_masking.py`](/additional_scripts/sector_masking.py) creates a sector mask
+- [`transmission_estimation_T_sample_blocked_beam_out.py`](/additional_scripts/transmission_estimation_T_sample_blocked_beam_out.py) estimates ratio between scattered and transmitted neutrons using a transmission mask as an input
+- [`transmission_fit.py`](/additional_scripts/transmission_fit.py) implements [CalculateTransmission](http://docs.mantidproject.org/nightly/algorithms/CalculateTransmission-v1.html) algorithm fora  given pair of a sample/empty beam transmission data sets 
 
 ### example_data_reduction_settings
 #### This folder contains set of experimental files and files to be customised for every new data set
