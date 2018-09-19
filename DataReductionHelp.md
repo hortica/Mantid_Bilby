@@ -1,6 +1,6 @@
 ## Data reduction instruction
 
-- Two csv files, similar to ([`input_csv_example.csv`](/example_data_reduction_settings/input_csv_example.csv) and [`mantid_reduction_settings_example.csv`](/example_data_reduction_settings/mantid_reduction_settings_example.csv)) shall be created during the experiment; the names can be different
+- Two csv files, similar to ([`input_csv_example.csv`](/example_data_reduction_settings/input_csv_example.csv) and [`mantid_reduction_settings_example.csv`](/example_data_reduction_settings/mantid_reduction_settings_example.csv)) shall be created during the experiment; the names can be different, the format (especially the top line in each) must stay the same
 
 - Download scripts from [`reduction_scripts_const`](/reduction_scripts_const) 
 
