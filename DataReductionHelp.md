@@ -12,8 +12,9 @@
 
 - To keep it simple, one can put tar and csv files in one folder, but you can add as many folders on the paths as you want
 
-- Open the reducer script [`reducer_example.py`](/example_data_reduction_settings/reducer_example.py), open scripts window: go to Mantid, menu “View”, then “Script window” (or just press F3)
-  * in the “Python Window” open file, just “Ctrl-O” or File -> Open
+- Open the script menu: open menu “View”, then “Script window”; alternalively just press F3
+
+- Open the reducer script [`reducer_example.py`](/example_data_reduction_settings/reducer_example.py) (in the “Python Window” open file, just “Ctrl-O” or File -> Open), update [lines 15-27](/example_data_reduction_settings/reducer_example.py#L15-L27) accordingly
 
 - Run the reducer, Execute -> Execute All in the Menu
   * All output 1D files will be saved in the folder you define in the [`mantid_reduction_settings_example.csv`](/example_data_reduction_settings/mantid_reduction_settings_example.csv))
