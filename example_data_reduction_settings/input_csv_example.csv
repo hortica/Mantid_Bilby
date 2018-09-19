@@ -1,7 +1,7 @@
 index,T_EmptyBeam,T_Sample,Sample,thickness [cm],mask_transmission,mask,BlockedBeam,suffix,additional_description,T_BlockedBeam,mask_transmission_estimate_multiple,StartTime,EndTime
 ,,,,,,,,,,,,,
 ,,,,,,,,,,,,,
-0,BBY0019744,BBY0019743,BBY0019749,0.1,transmission_mask_example,mask_scattering_example,BBY0019748,AgBeh,,,,,
+0,BBY0019744,BBY0019743,BBY0019749,0.1,transmission_mask_example,scattering_mask_example,BBY0019748,AgBeh,,,,,
 ,,,,,,,,,,,,,
 ,,,,,,,,,,,,,
 END,,,,,,,,,,,,,
