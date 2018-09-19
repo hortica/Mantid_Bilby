@@ -21,4 +21,4 @@
 - Open the reducer script [`reducer_example.py`](/example_data_reduction_settings/reducer_example.py) (in the “Python Window” open file, just “Ctrl-O” or File -> Open), update [lines 15-27](/example_data_reduction_settings/reducer_example.py#L15-L27) accordingly
 
 - Run the reducer, Execute -> Execute All in the Menu
-  * All output 1D files will be saved in the folder you define in the [`mantid_reduction_settings_example.csv`](/example_data_reduction_settings/mantid_reduction_settings_example.csv))
+  * All output 1D files will be saved in the folder you define in the [`mantid_reduction_settings_example.csv`](/example_data_reduction_settings/mantid_reduction_settings_example.csv)
