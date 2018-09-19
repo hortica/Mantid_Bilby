@@ -28,6 +28,6 @@ Scripts for [BILBY SANS instrument](https://www.ansto.gov.au/user-access/instrum
 
 ### reduction_scripts_const
 #### This folder contains those scripts used for Bilby data reduction which do not require adaptation for each user experiment
+- [`BilbyCustomFunctions_Reduction.py`](/reduction_scripts_const/BilbyCustomFunctions_Reduction.py) is a set of subroutines used for the Bilby data reduction
 - [`SANSDataProcessor.py`](/reduction_scripts_const/SANSDataProcessor.py) is the main script sitting in the following folder:[root]\MantidInstall\plugins\python\algorithms\WorkflowAlgorithms
 - [`shift_assembled.csv`](/reduction_scripts_const/shift_assembled.csv) is the table which contains values for tube position correction
-- [`BilbyCustomFunctions_Reduction.py`](/reduction_scripts_const/BilbyCustomFunctions_Reduction.py) is a set of subroutines used for the Bilby data reduction
