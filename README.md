@@ -6,12 +6,12 @@ Scripts for [BILBY SANS instrument](https://www.ansto.gov.au/user-access/instrum
 
 ##### subtraction
 [`subtraction`](/additional_scripts/subtraction) contains set of scripts to prepare file for subtractions and execute it
-[`create_subtraction_list.py`](/additional_scripts/subtraction/create_subtraction_list.py)
-[`subtraction.py`](/additional_scripts/subtraction/subtraction.py)
+- [`create_subtraction_list.py`](/additional_scripts/subtraction/create_subtraction_list.py)
+- [`subtraction.py`](/additional_scripts/subtraction/subtraction.py)
 
 ##### other scripts
 
-[`control_flux_sums.py`](/additional_scripts/subtraction/control_flux_sums.py)
+[`control_flux_sums.py`](/additional_scripts/subtraction/control_flux_sums.py) to calculate flux 
 
 sector_masking.py
 transmission_estimation_T_sample_blocked_beam_out.py
@@ -21,7 +21,7 @@ transmission_fit.py
 ### example_data_reduction_settings
 #### This folder contains set of experimental files and files to be customised for every new data set
 - set of experimental `*.tar` files
-- [`input_csv_example.csv`](/example_data_reduction_settings/input_csv_background_6123.csv) file is a formatted list of input data;
+- [`input_csv_example.csv`](/example_data_reduction_settings/input_csv_background_6123.csv) file is a formatted list of input data
 - [`mantid_reduction_settings_example.csv`](/example_data_reduction_settings/mantid_reduction_background_6123.csv) is a formatted list of data reduction setting
 -  [`reducer_example.py`](/example_data_reduction_settings/reducer_example.py) is a reducer file which shall be updated for each set of data; only a block between [lines 15-27](/example_data_reduction_settings/reducer_example.py#L15-L27) shall be updated indicating requested data reduction settings along with a set of the data files to be reduced
 - `*mask*.xml`: masks files created for any separate data set
