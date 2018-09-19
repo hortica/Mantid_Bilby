@@ -4,13 +4,18 @@ Scripts for [BILBY SANS instrument](https://www.ansto.gov.au/user-access/instrum
 ### additional_scripts
 #### Any other scripts to be used for Bilby data treatment
 
-####[`subtraction`](/additional_scripts/subtraction)
-create_subtraction_list.py
-subtraction.py
+##### subtraction
+[`subtraction`](/additional_scripts/subtraction) contains set of scripts to prepare file for subtractions and execute it
+[`create_subtraction_list.py`](/additional_scripts/subtraction/create_subtraction_list.py)
+[`subtraction.py`](/additional_scripts/subtraction/subtraction.py)
 
-control_flux_sums.py
+##### other scripts
 
-mask_sector.py
+[`control_flux_sums.py`](/additional_scripts/subtraction/control_flux_sums.py)
+
+sector_masking.py
+transmission_estimation_T_sample_blocked_beam_out.py
+transmission_fit.py
 
 
 ### example_data_reduction_settings
