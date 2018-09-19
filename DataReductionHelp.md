@@ -1,5 +1,7 @@
 ## Data reduction instruction
 
+- Two csv files, similar to ([`input_csv_example.csv`](/example_data_reduction_settings/input_csv_example.csv) and [`mantid_reduction_settings_example.csv`](/example_data_reduction_settings/mantid_reduction_settings_example.csv)) shall be created during the experiment; the names can be different
+
 - Download scripts from [`reduction_scripts_const`](/reduction_scripts_const) 
 
 * Two following scripts shall be saved everywhere, but important thing is that the folder shall be on the path (added to "Mantid User Directories")
