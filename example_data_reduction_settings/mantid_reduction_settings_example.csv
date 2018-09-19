@@ -3,23 +3,7 @@ index,csv_file_name,reduced_files_folder,binning_wavelength_ini,binning_q,binnin
 ,IMPORTANT: do NOT change first line in this file and keep  the first column CLEAN of everything except Indexes,,,,,,,,,,,,,
 ,Folder with csv list with files to be reduces,Path for a folder where reduced data will be stored,"Wavelength boundaries for reduction: a comma separated list of first bin boundary, width, last bin boundary","Output Q-boundaries: a comma separated list of first bin boundary, width, last bin boundary","Wavelengths boundaries for transmission binning: a comma separated list of first bin boundary, width, last bin boundary","To increase resolution some wavelengths are excluded within this distance from the beam center (mm). Default value is ""0""",To increase resolution by starting to remove some wavelengths below thisfreshold (angstrom). Default value is 0.,"Function to use to fit transmission; can be Linear, Log, Polynomial (first letter shall be capital)","Used only for Polynomial function, but needed as an input parameter anyway",If reduce data on wavelengths' slices (case insensitive),Wavelength interval for the slices (can be empty if not in use),If reduce data in 2D mode (case insensitive),Q-binning will be ignored; given Q-interval will be divided by number of points,
 ,,,,,,,,,,,,,,
-0,input_csv_example.csv,1d_data_new,"2.0, 0.01, 18.0","0.0009, -0.05, 0.58","2.0, 0.01, 18.0",0,0,Linear,3,FALSE,2,FALSE,100,TRUE
-1,input_csv_example.csv,1d_data_new,"5.0, -0.02, 18","0.02, -0.015, 1.0","2.0, -0.02, 18",0,0,Polynomial,3,FALSE,2,FALSE,100,TRUE
-2,input_csv_example.csv,1d_data_new,"2.0, 0.01, 18.0","0.0009, -0.05, 1.0","2.0, 0.01, 18.0",0,0,Polynomial,3,TRUE,2,FALSE,100,TRUE
-,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,
-3,input_csv_example.csv,1d_data_new,"2.0, -0.02, 5.0","0.02, -0.035, 1.0","2.0, -0.02, 18",0,0,Polynomial,3,FALSE,2,FALSE,100,TRUE
-4,input_csv_example.csv,1d_data_new,"5.0, -0.05, 10.0","0.02, -0.015, 1.0","5.0, -0.05, 10.0",0,0,Polynomial,3,FALSE,2,FALSE,100,TRUE
-44,input_csv_example.csv,1d_data_new,"3.0, -0.01, 18.0","0.02, -0.015, 1.0","2.0, -0.01, 18",0,0,Polynomial,3,FALSE,2,FALSE,100,TRUE
-,,,,,,,,,,,,,,
-5,input_csv_example.csv,1d_data_new,"3.0, -0.02, 14.0","0.02, -0.035, 1.0","2.0, -0.02, 18",0,0,Polynomial,3,FALSE,2,FALSE,100,TRUE
-6,input_csv_example.csv,1d_data_new,"2.0, -0.02, 14.0","0.02, -0.035, 1.0","2.0, -0.02, 18",0,0,Polynomial,3,FALSE,2,FALSE,100,TRUE
-,,,,,,,,,,,,,,
-7,input_csv_example.csv,1d_data_new,"2.0, -0.056, 20.0","0.025,0.002,1.2","2.0, -0.056, 20.0",0,0,Polynomial,3,TRUE,2,FALSE,100,TRUE
-8,input_csv_example.csv,1d_data_new,"8.5, -0.056, 10.5","0.025,0.002,0.4","8.5, -0.056, 10.5",0,0,Polynomial,3,FALSE,2,FALSE,100,TRUE
-,,,,,,,,,,,,,,
-9,input_csv_example.csv,1d_data_new,"2.0, -0.01, 20.0","0.025,0.002,1.2","2.0, -0.01, 20.0",0,0,Polynomial,3,TRUE,2,FALSE,100,TRUE
-,,,,,,,,,,,,,,
+0,input_csv_example.csv,1d_data,"2.0, 0.01, 18.0","0.0009, -0.05, 0.58","2.0, 0.01, 18.0",0,0,Polynomial,3,FALSE,2,FALSE,100,TRUE
 ,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,
 END,,,,,,,,,,,,,,
