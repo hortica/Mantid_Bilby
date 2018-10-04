@@ -3,7 +3,7 @@ Instruction, scripts and test files for [BILBY SANS instrument](https://www.anst
 
 ### Data reduction instruction
 
-[`DataReductionHelp`](/DataReductionHelp.md) a detailed instruction of how to make Bilby data reduction working
+[`DataReductionHelp`](/DataReductionHelp.md) - a detailed instruction of how to make Bilby data reduction working
 
 ### example_data_reduction_settings
 #### This folder contains set of experimental files and files to be customised for every new data set
