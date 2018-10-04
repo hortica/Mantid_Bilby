@@ -1,6 +1,10 @@
 Scripts for [BILBY SANS instrument](https://www.ansto.gov.au/user-access/instruments/neutron-scattering-instruments/bilby-small-angle-neutron-scattering) data reduction and initial analysis
 
 
+### Data reduction instruction
+
+[`DataReductionHelp`](/DataReductionHelp.md)
+
 ### example_data_reduction_settings
 #### This folder contains set of experimental files and files to be customised for every new data set
 - set of experimental `*.tar` files
