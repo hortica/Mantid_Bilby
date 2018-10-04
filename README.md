@@ -1,4 +1,4 @@
-Instruction, scripts and test files for [BILBY SANS instrument](https://www.ansto.gov.au/user-access/instruments/neutron-scattering-instruments/bilby-small-angle-neutron-scattering) data reduction and initial analysis
+Instruction, scripts and test files for [BILBY SANS instrument](https://www.ansto.gov.au/user-access/instruments/neutron-scattering-instruments/bilby-small-angle-neutron-scattering) data reduction
 
 
 ### data reduction instruction
