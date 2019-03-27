@@ -1,19 +1,17 @@
 from mantid import *
 import numpy as np
-import numpy as np
 import os, csv, math
 from mantid.kernel import Logger
 
 import BilbyCustomFunctions_Reduction
 reload (BilbyCustomFunctions_Reduction)
-#import strip_end_nans
 
 ansto_logger = Logger("AnstoDataReduction")
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # INPUT - mandatory from a USER - START
 ###########################################################################################
-red_settings = FileFinder.getFullPath('mantid_reduction_settings_example.csv')
+red_settings = FileFinder.getFullPath('settings_csv_7442.csv')
 
 # INPUT - index of a line with reduction parameters
 index_reduction_settings = ["0"] # INDEX OF THE LINE WITH REDUCTION SETTINGS
@@ -22,7 +20,7 @@ if len(index_reduction_settings) > 1: # must be single choice
     raise ValueError('Please check your choice of reduction settigns; only single value is allowed')    
 
 # ID to evaluate - INPUT, in any combination of 'a-b' or ',c', or empty line; empty line means evaluate all files listed in csv
-index_files_to_reduce = "0"  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
+index_files_to_reduce = "22"  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
 
 # Data file with numbers 
 path_tube_shift_correction = FileFinder.getFullPath('shift_assembled.csv')
@@ -38,14 +36,14 @@ data_before_2016 = False # curtains moved/ aligned /extra shift applied
 data_before_May_2016 = False # Attenuators changed
 account_for_gravity = True #False
 solid_angle_weighting = True #False
-wide_angle_correction = False
+wide_angle_correction = True
 blocked_beam = True #False
 
 ######################################
 ######################################
 # Reading parameters from the reduction settings file
-reduction_settings_list = BilbyCustomFunctions_Reduction.FilesListReduce(red_settings) # read entire file
-current_reduction_settings = BilbyCustomFunctions_Reduction.FilesToReduce(reduction_settings_list, index_reduction_settings[0]) # take only one line, # index_reduction_settings
+reduction_settings_list = BilbyCustomFunctions_Reduction.files_list_reduce(red_settings) # read entire file
+current_reduction_settings = BilbyCustomFunctions_Reduction.files_to_reduce(reduction_settings_list, index_reduction_settings[0]) # take only one line, # index_reduction_settings
 
 # Read input csv file and define / create a folder for the output data
 
@@ -128,7 +126,7 @@ if len(files_to_reduce) == 0:
 # reduce requested files one by one
 for current_file in files_to_reduce:                              
     sam_file = current_file["Sample"]+'.tar'
-   
+
     StartTime = current_file["StartTime"]
     EndTime = current_file["EndTime"]
 #Errors: if trying to reduce time slice larger than the total time of the measurement:
@@ -159,6 +157,10 @@ for current_file in files_to_reduce:
     if (not external_mode): # Internal frame source has been used during data collection; it is not always NVS only, one can have both, NVS and choppers running for this mode
         print "Internal frame source. Binning range is taken from the sample scattering data." 
         binning_wavelength_ini = (ws_sam.readX(0)[0], ws_sam.readX(0)[ws_sam.blocksize()] - ws_sam.readX(0)[0], ws_sam.readX(0)[ws_sam.blocksize()])            
+        ############ ????????????????? ##############
+        print ws_sam.readX(0)[ws_sam.blocksize()] - ws_sam.readX(0)[0]
+        ############ ????????????????? ##############        
+        
         binning_wavelength_transmission = binning_wavelength_ini      
         if wavelength_intervals:
             wavelength_intervals = False
@@ -181,7 +183,6 @@ for current_file in files_to_reduce:
     ws_tranEmp = LoadBBY(ws_emp_file) # empty beam for transmission
     transm_mask = current_file["mask_transmission"]+'.xml'
     ws_tranMsk = LoadMask('Bilby', transm_mask)
-
     sam_mask_file = current_file["mask"]+'.xml'
     ws_samMsk = LoadMask('Bilby', sam_mask_file)
 
@@ -201,6 +202,7 @@ for current_file in files_to_reduce:
         BilbyCustomFunctions_Reduction.DetShift_before2016(ws_sam)    
 
     #Blocked beam 
+    ws_blocked_beam = 'No blocked beam used'  # default value for the blocked beam; used for the header file
     if blocked_beam:
         ws_blocked_beam = current_file["BlockedBeam"]+'.tar'
         ws_blk = LoadBBY(ws_blocked_beam)
@@ -222,8 +224,8 @@ for current_file in files_to_reduce:
 ###############################################################
 # By now we know how many wavelengths bins we have, so shall run Q1D n times
     # -- Processing --
-    suffix = '_' + current_file["suffix"] # is the same for all wavelength intervals
-    suffix_2 = current_file["additional_description"]
+    suffix = '_' + current_file["suffix"].strip() # is the same for all wavelength intervals
+    suffix_2 = current_file["additional_description"].strip()
     if suffix_2 != '':
         suffix += '_' + suffix_2
                 
@@ -232,13 +234,17 @@ for current_file in files_to_reduce:
         ws_emp_partial = SumSpectra(ws_emp_partial, IncludeMonitors=False)           
      
         if reduce_2D:
-            base_output_name = sam_file[0:10]+'_2D_'+ str(binning_wavelength[i][0]) +'_'+ str(binning_wavelength[i][2]) + time_range + suffix  #A core of output name; made from the name of the input sample        
+           base_output_name = sam_file[0:10]+'_2D_'+ str(binning_wavelength[i][0]) +'_'+ str(binning_wavelength[i][2]) + time_range + suffix  #A core of output name; made from the name of the input sample        
         else:
-            base_output_name = sam_file[0:10]+'_1D_'+ str(round(binning_wavelength[i][0], 3)) +'_'+ str(round(binning_wavelength[i][2],3)) + time_range + suffix  #A core of output name; made from the name of the input sample            
+            if external_mode:            
+               base_output_name = sam_file[0:10]+'_'+ str(round(binning_wavelength[i][0], 3)) +'_'+ str(round(binning_wavelength[i][2],3)) + time_range + suffix  #A core of output name; made from the name of the input sample            
+            else:
+               mean_wl = round((binning_wavelength[i][0] + binning_wavelength[i][2])/2, 1)
+               base_output_name = sam_file[0:10]+ suffix + time_range  #A core of output name; made from the name of the input sample                       
 
         transmission_fit = transmission_fit_ini # needed here, otherwise SANSDataProcessor replaced it with "transmission_fit" string
 
-        output_workspace, transmission_fit = SANSDataProcessor(InputWorkspace=ws_sam, InputMaskingWorkspace=ws_samMsk, \
+        output_workspace, transmission_fit = BilbySANSDataProcessor(InputWorkspace=ws_sam, InputMaskingWorkspace=ws_samMsk, \
                                   BlockedBeamWorkspace=ws_blk, EmptyBeamSpectrumShapeWorkspace=ws_emp_partial, SensitivityCorrectionMatrix=ws_sen, \
                                   TransmissionWorkspace=ws_tranSam, TransmissionEmptyBeamWorkspace=ws_tranEmp, TransmissionMaskingWorkspace=ws_tranMsk, \
                                   ScalingFactor=scale, SampleThickness=thickness, \
@@ -249,7 +255,6 @@ for current_file in files_to_reduce:
                                   WideAngleCorrection=wide_angle_correction, \
                                   Reduce_2D = reduce_2D, \
                                   OutputWorkspace = base_output_name)
-
         #print mtd.getObjectNames()
         #print transmission_fit.getHistory()
 
@@ -273,7 +278,21 @@ for current_file in files_to_reduce:
        #Section for file saving
             n_1D = base_output_name +".dat"       # 1D output file; name based on "base_output_name" construct
             savefile = os.path.join(os.path.expanduser(reduced_files_path), n_1D)          # setting up full path
-            SaveAscii(InputWorkspace = base_output_name, Filename = savefile, WriteXError = True, WriteSpectrumID = False, Separator = "CSV") #saving file
+
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
+#something new 26 March 2019
+            #add parameters into the file header
+            header = BilbyCustomFunctions_Reduction.output_header(external_mode, binning_wavelength[i], ws_sam, thickness, transm_file, ws_emp_file, ws_blocked_beam, sam_mask_file, transm_mask)
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            f = open(savefile, "w") # open file re-wring existing one
+            for line in header: # write the rest of the header in the file            
+               with open(savefile, 'a') as f_out:
+                  f_out.write(line+'\n')
+           #to sort out the list & define what is in for ToF
+
+            SaveAscii(InputWorkspace = base_output_name, Filename = savefile, WriteXError = True, WriteSpectrumID = False, Separator = "CSV", AppendToFile = True) #saving file
             print savefile
             print "1D File Exists:", os.path.exists(savefile)            
 
