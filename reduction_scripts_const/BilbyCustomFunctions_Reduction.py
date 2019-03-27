@@ -34,7 +34,7 @@ def read_convert_to_float(array_strings):
     
 ###########################################################################################
 
-def FilesListReduce (filename):
+def files_list_reduce(filename):
     """ Creat array of input reduction settings """
 
     parameters = []            
@@ -68,7 +68,7 @@ def evaluate_files_list(numbers):
  
  #######################################################################################
 
-def FilesToReduce(parameters, evaluate_files):
+def files_to_reduce(parameters, evaluate_files):
     """ Create list of the files to reduce """
 
     files_to_reduce = [] 
@@ -83,7 +83,9 @@ def FilesToReduce(parameters, evaluate_files):
            
     return files_to_reduce
 
-#######################################################################################
+####################################################################################### 
+# For output file formatting #########################################################################################
+####################################################################################### 
              
 def strip_NaNs(output_workspace, base_output_name):
     """  Strip NaNs from the 1D OutputWorkspace """ #add isinf
@@ -99,6 +101,74 @@ def strip_NaNs(output_workspace, base_output_name):
     CropWorkspace(InputWorkspace = output_workspace, XMin = start_q, XMax = end_q, OutputWorkspace = base_output_name)
 
     return base_output_name
+    
+#######################################################################################    
+#26 March 2019
+def output_header(external_mode, used_wl_range, ws_sample, sample_thickness, sample_transmission, empty_beam_transmission, blocked_beam, sample_mask, transmission_mask):
+    """  Creates header to be recorded into the output file """
+
+    header = []
+
+    wl_row = 'Velocity selector set wavelength: ' + str (format(float(ws_sample.run().getProperty("wavelength").value), '.3f')) + ' Angstrom'
+    header.append(wl_row)
+ 
+    if (external_mode):
+        choppers = 'Double choppers pair: ' + str(int(ws_sample.run().getProperty("master1_chopper_id").value )) + ' and '+ str(int(ws_sample.run().getProperty("master2_chopper_id").value))
+        header.append(choppers)
+        frequency = 'Data defining pulse frequency (equal or slower than the Double pair frequency): ' + str(format(1e6/float(ws_sample.run().getProperty("period").value), '.2f')) + ' Hz'
+        header.append(frequency)
+        wavelength_range = 'Wavelength range used for the data reduction: ' + str (format(float(used_wl_range[0]), '.2f')) + ' to ' \
+                                                                                                              + str (format(float(used_wl_range[2]), '.2f'))  + ' Angstrom'
+        header.append(wavelength_range)
+        resolution_value = float(used_wl_range[1])
+        if resolution_value < 0:
+            resolution = 'Resolution used for calculation of dQ: ' + str (format((-100 *resolution_value), '.2f'))  + '%'
+        else:
+            resolution = 'Resolution taken as wavelength binning;' + '\n' + 'the value is set to ' + str(format(resolution_value, '.2f')) + \
+                               ' on linear scale, hence the dQ calculation is meaningless'
+        header.append(resolution)
+    else:
+        resolution = "Nominal resolution: 10%"        
+        header.append(resolution)
+
+    L1 = 'L1: ' + str (format(float(ws_sample.run().getProperty("L1").value), '.3f')) + ' m'
+    header.append(L1)
+
+    rear_L2_row = 'L2 to rear detector: ' + str (format(float(ws_sample.run().getProperty("L2_det_value").value), '.3f')) + ' m'
+    header.append(rear_L2_row)
+
+    curtain_ud_L2_row = 'L2 to horizontal curtains: ' + str (format(float(ws_sample.run().getProperty("L2_curtainu_value").value), '.3f')) + ' m'
+    header.append(curtain_ud_L2_row)
+
+    curtain_lr_L2_row = 'L2 to vertical curtains: ' + str (format(float(ws_sample.run().getProperty("L2_curtainr_value").value), '.3f')) + ' m'
+    header.append(curtain_lr_L2_row) 
+
+    curtain_l_separation_row = 'Left curtain separation: ' + str (format(float(ws_sample.run().getProperty("D_curtainl_value").value), '.3f')) + ' m'
+    header.append(curtain_l_separation_row)
+
+    curtain_r_separation_row = 'Right curtain separation: ' + str (format(float(ws_sample.run().getProperty("D_curtainr_value").value), '.3f')) + ' m'
+    header.append(curtain_r_separation_row)
+
+    curtain_u_separation_row = 'Top curtain separation: ' + str (format(float(ws_sample.run().getProperty("D_curtainu_value").value), '.3f')) + ' m'
+    header.append(curtain_u_separation_row)
+
+    curtain_d_separation_row = 'Bottom curtain separation: ' + str (format(float(ws_sample.run().getProperty("D_curtaind_value").value), '.3f')) + ' m'
+    header.append(curtain_d_separation_row)
+
+    apertures = 'Source and sample apertures diameters: ' + str (format(float(ws_sample.run().getProperty("source_aperture").value), '.1f')) + ' mm and ' \
+                                                                                                      + str (format(float(ws_sample.run().getProperty("sample_aperture").value), '.1f')) + ' mm'
+    header.append(apertures)
+
+    sample_related_details = 'Sample thickness and transmission: ' + format(float(sample_thickness), '.2f') + ' cm and ' + sample_transmission
+    header.append(sample_related_details)
+
+    corrections_related_details = 'Empty beam transmission and blocked beam scattering: ' + empty_beam_transmission + ' and ' + blocked_beam
+    header.append(corrections_related_details)
+
+    masks = 'Sample and trasmission masks: ' + sample_mask + ' and ' + transmission_mask + '\n'
+    header.append(masks)
+    
+    return header    
     
 ####################################################################################### 
 # GENERAL #########################################################################################
