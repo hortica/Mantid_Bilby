@@ -36,8 +36,12 @@ data_before_2016 = False # curtains moved/ aligned /extra shift applied
 data_before_May_2016 = False # Attenuators changed
 account_for_gravity = True #False
 solid_angle_weighting = True #False
-wide_angle_correction = True
+wide_angle_correction = False
 blocked_beam = True #False
+
+if wide_angle_correction == True:
+    print "WARNING: wide_angle_correction is set to", wide_angle_correction, "which will lead to the wrong calculations of error bars."
+    print "WARNING: highly recommended to change the wide_angle_correction value to FALSE."
 
 ######################################
 ######################################
@@ -225,7 +229,9 @@ for current_file in files_to_reduce:
 ###############################################################
 # By now we know how many wavelengths bins we have, so shall run Q1D n times
     # -- Processing --
-    suffix = '_' + current_file["suffix"].strip() # is the same for all wavelength intervals
+    suffix = current_file["suffix"].strip()
+    if suffix != '':
+        suffix = '_' + current_file["suffix"].strip() # is the same for all wavelength intervals
     suffix_2 = current_file["additional_description"].strip()
     if suffix_2 != '':
         suffix += '_' + suffix_2
@@ -235,13 +241,13 @@ for current_file in files_to_reduce:
         ws_emp_partial = SumSpectra(ws_emp_partial, IncludeMonitors=False)           
      
         if reduce_2D:
-           base_output_name = sam_file[0:10]+'_2D_'+ str(binning_wavelength[i][0]) +'_'+ str(binning_wavelength[i][2]) + time_range + suffix  #A core of output name; made from the name of the input sample        
+           base_output_name = sam_file[0:10]+'_2D_'+ str(round(binning_wavelength[i][0], 3)) +'_'+ str(round(binning_wavelength[i][2],3)) + time_range + suffix  #A core of output name; made from the name of the input sample        
         else:
             if external_mode:            
                base_output_name = sam_file[0:10]+'_'+ str(round(binning_wavelength[i][0], 3)) +'_'+ str(round(binning_wavelength[i][2],3)) + time_range + suffix  #A core of output name; made from the name of the input sample            
             else:
                base_output_name = sam_file[0:10]+ suffix + time_range  #A core of output name; made from the name of the input sample                       
-
+               
         transmission_fit = transmission_fit_ini # needed here, otherwise SANSDataProcessor replaced it with "transmission_fit" string
 
         output_workspace, transmission_fit = BilbySANSDataProcessor(InputWorkspace=ws_sam, InputMaskingWorkspace=ws_samMsk, \
