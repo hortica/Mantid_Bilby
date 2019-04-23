@@ -118,8 +118,8 @@ if reduce_2D:
     
 ######################################
  # Calling function to read given csv file   
-parameters = BilbyCustomFunctions_Reduction.FilesListReduce(csv_files_to_reduce_list)
-files_to_reduce = BilbyCustomFunctions_Reduction.FilesToReduce(parameters, index_files_to_reduce)
+parameters = BilbyCustomFunctions_Reduction.files_list_reduce(csv_files_to_reduce_list)
+files_to_reduce = BilbyCustomFunctions_Reduction.files_to_reduce(parameters, index_files_to_reduce)
 if len(files_to_reduce) == 0:
     raise ValueError('Please check index_files_to_reduce; chosen one does not exist')    
 
@@ -253,7 +253,7 @@ for current_file in files_to_reduce:
                                   TimeMode = external_mode, AccountForGravity=account_for_gravity, SolidAngleWeighting=solid_angle_weighting, \
                                   RadiusCut = RadiusCut, WaveCut = WaveCut, \
                                   WideAngleCorrection=wide_angle_correction, \
-                                  Reduce_2D = reduce_2D, \
+                                  Reduce2D = reduce_2D, \
                                   OutputWorkspace = base_output_name)
         #print mtd.getObjectNames()
         #print transmission_fit.getHistory()
