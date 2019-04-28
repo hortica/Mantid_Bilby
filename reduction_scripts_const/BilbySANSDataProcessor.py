@@ -1,15 +1,26 @@
-# attenuators
+# Mantid Repository : https://github.com/mantidproject/mantid
+#
+# Copyright &copy; 2018 ISIS Rutherford Appleton Laboratory UKRI,
+#     NScD Oak Ridge National Laboratory, European Spallation Source
+#     & Institut Laue - Langevin
+# SPDX - License - Identifier: GPL - 3.0 +
 
 import numpy as np
-
-from mantid.api import MatrixWorkspaceProperty, IEventWorkspaceProperty, PropertyMode, WorkspaceUnitValidator
+from mantid.api import MatrixWorkspaceProperty, PropertyMode, WorkspaceUnitValidator
 from mantid.api import DataProcessorAlgorithm, AlgorithmFactory
-from mantid.api import AnalysisDataService, AlgorithmManager
 from mantid.kernel import Direction, FloatArrayProperty, FloatBoundedValidator, FloatArrayMandatoryValidator, Logger
 from mantid.api import IMaskWorkspace
 
+SOURCE_APERTURE_RADIUS = 20.0
+SOURCE_APERTURE_RADIUS_MAX = 40.0
+SAMPLE_APERTURE_RADIUS_MAX = 40.0
+SAMPLE_APERTURE_RADIUS = 6.25
+NUMBER_OF_BINS = 10
+NUMBER_OF_SPECTRA = 1
+DELTA_WAVELENGTH = 0.1
 
-class SANSDataProcessor(DataProcessorAlgorithm):
+
+class BilbySANSDataProcessor(DataProcessorAlgorithm):
     def __init__(self):
         DataProcessorAlgorithm.__init__(self)
 
@@ -18,127 +29,139 @@ class SANSDataProcessor(DataProcessorAlgorithm):
     def category(self):
         return "Workflow\\SANS"
 
+    def seeAlso(self):
+        return ["Q1D", "TOFSANSResolutionByPixel", "SANSWideAngleCorrection"]
+
     def name(self):
-        return "SANSDataProcessor"
+        return "BilbySANSDataProcessor"
 
     def summary(self):
-        return ""
+        return "BILBY SANS data reduction. Converts a workspace in wavelength into a 1D or 2D workspace of" \
+               " momentum transfer, assuming elastic scattering."
 
     def PyInit(self):
         # input
         self.declareProperty(MatrixWorkspaceProperty('InputWorkspace', '',
                                                      direction=Direction.Input,
                                                      optional=PropertyMode.Mandatory),
-                             doc='workspace of sample or background data')
+                             doc='Particle counts as a function of wavelength')
 
         self.declareProperty(MatrixWorkspaceProperty('InputMaskingWorkspace', '',
                                                      direction=Direction.Input,
                                                      optional=PropertyMode.Optional),
-                             doc='used to remove unwanted detectors regarding the data reduction')
+                             doc='Mask for the scattering data')
 
         # blocked beam, beam shape and detector corrections
         self.declareProperty(MatrixWorkspaceProperty('BlockedBeamWorkspace', '',
                                                      direction=Direction.Input,
                                                      optional=PropertyMode.Optional),
-                             doc='workspace of blocked beam data')
+                             doc='Blocked beam scattering')
 
         self.declareProperty(MatrixWorkspaceProperty('EmptyBeamSpectrumShapeWorkspace', '',
                                                      direction=Direction.Input,
                                                      optional=PropertyMode.Mandatory,
                                                      validator=WorkspaceUnitValidator("Wavelength")),
-                             doc='also known as direct-beam spectrum shape')
+                             doc='Empty beam transmission, where only a given wavelength slice is considered')
 
         self.declareProperty(MatrixWorkspaceProperty('SensitivityCorrectionMatrix', '',
                                                      direction=Direction.Input,
                                                      optional=PropertyMode.Optional),
-                             doc='workspace of scaling factors for each detector pixel')
+                             doc='Detector sensitivity calibration data set')
 
         self.declareProperty(MatrixWorkspaceProperty('TransmissionWorkspace', '',
                                                      direction=Direction.Input,
                                                      optional=PropertyMode.Mandatory),
-                             doc='workspace of sample or background transmission data')
+                             doc='Sample transmission workspace')
 
         self.declareProperty(MatrixWorkspaceProperty('TransmissionEmptyBeamWorkspace', '',
                                                      direction=Direction.Input,
                                                      optional=PropertyMode.Mandatory),
-                             doc='workspace of empty beam transmission data')
+                             doc='Empty beam transmission workspace')
 
         self.declareProperty(MatrixWorkspaceProperty('TransmissionMaskingWorkspace', '',
                                                      direction=Direction.Input,
                                                      optional=PropertyMode.Mandatory),
-                             doc='used to remove unwanted detectors regarding the transmission calculation')
+                             doc='Mask for the transmission data')
 
-        self.declareProperty(name='fitmethod',
-                             defaultValue='log', doc='fit method for transmission')
+        self.declareProperty(name='FitMethod',
+                             defaultValue='log', doc='Function to use to fit transmission; can be Linear,'
+                                                     ' Log, Polynomial (first letter shall be capital)')
 
-        self.declareProperty(name='polynomialorder',
+        self.declareProperty(name='PolynomialOrder',
                              defaultValue='3',
-                             doc='polynomial order for transmission; taken into account only for Polynomial fits,'
-                                 'but ignored for all the rest')
+                             doc='Used only for Polynomial function, but needed as an input parameter anyway')
 
-        self.declareProperty(name='scalingfactor',
+        self.declareProperty(name='ScalingFactor',
                              defaultValue=1.0,
                              validator=FloatBoundedValidator(lower=0.0),
-                             doc='final scaling factor (also includes attenuation scaling factors)')
+                             doc='Attenuating factor')
 
-        self.declareProperty(name='samplethickness',
+        self.declareProperty(name='SampleThickness',
                              defaultValue=1.0,
                              validator=FloatBoundedValidator(lower=0.0),
-                             doc='thickness of sample')
+                             doc='Thickness of sample')
 
-        self.declareProperty(FloatArrayProperty('binningwavelength',
+        self.declareProperty(FloatArrayProperty('BinningWavelength',
                                                 direction=Direction.Input,
                                                 validator=FloatArrayMandatoryValidator()),
-                             doc='used for the binning of the input workspace')
+                             doc='Wavelength boundaries for reduction: a comma separated list of first bin boundary,'
+                                 ' width, last bin boundary')
 
-        self.declareProperty(FloatArrayProperty('binningwavelengthtransm',
+        self.declareProperty(FloatArrayProperty('BinningWavelengthTransm',
                                                 direction=Direction.Input,
                                                 validator=FloatArrayMandatoryValidator()),
-                             doc='used for the binning of the transmission input workspace')
+                             doc='Wavelengths boundaries for transmission binning: a comma separated list of first bin'
+                                 ' boundary, width, last bin')
 
-        self.declareProperty(FloatArrayProperty('binningq',
+        self.declareProperty(FloatArrayProperty('BinningQ',
                                                 direction=Direction.Input,
                                                 validator=FloatArrayMandatoryValidator()),
-                             doc='used for the binning of the resulting Q workspace')
+                             doc='Output Q-boundaries: a comma separated list of first bin boundary,'
+                                 ' width, last bin boundary')
 
-        self.declareProperty(name='timemode',
+        self.declareProperty(name='Timemode',
                              defaultValue=True,
-                             doc='wether the mode is time-of-flight or monochromatic')
+                             doc='If data collected in ToF or monochromatic mode')
 
-        self.declareProperty(name='accountforgravity',
+        self.declareProperty(name='AccountForGravity',
                              defaultValue=True,
-                             doc='whether to correct for the effects of gravity')
+                             doc='Whether to correct for the effects of gravity')
 
-        self.declareProperty(name='solidangleweighting',
+        self.declareProperty(name='SolidAngleWeighting',
                              defaultValue=True,
-                             doc='if true, pixels will be weighted by their solid angle')
+                             doc='If True, pixels will be weighted by their solid angle')
 
-        self.declareProperty(name='radiuscut',
+        self.declareProperty(name='RadiusCut',
                              defaultValue=1.0,
                              validator=FloatBoundedValidator(lower=0.0),
-                             doc='To increase resolution some wavelengths are excluded within this distance from '
-                                 'the beam center (mm)')
+                             doc='To increase resolution some wavelengths are excluded within this distance from the'
+                                 ' beam center (mm). Note that RadiusCut and WaveCut both need to be larger than 0 to'
+                                 ' affect the effective cutoff. See the algorithm description for a detailed'
+                                 ' explanation of the cutoff.')
 
-        self.declareProperty(name='wavecut',
+        self.declareProperty(name='WaveCut',
                              defaultValue=1.0,
                              validator=FloatBoundedValidator(lower=0.0),
-                             doc='To increase resolution by starting to remove some wavelengths below thisfreshold '
-                                 '(angstrom)')
+                             doc='To increase resolution by starting to remove some wavelengths below this threshold'
+                                 ' (angstrom). Note that WaveCut and RadiusCut both need to be larger than 0 to affect'
+                                 ' on the effective cutoff. See the algorithm description for a detailed explanation'
+                                 ' of the cutoff.')
 
-        self.declareProperty(name='wideanglecorrection',
+        self.declareProperty(name='WideAngleCorrection',
                              defaultValue=True,
-                             doc='if true, the wide angle correction for transmissions will be applied')
+                             doc='If true, the wide angle correction for transmissions will be applied')
 
-        self.declareProperty(name='reduce_2d',
+        self.declareProperty(name='Reduce2D',
                              defaultValue=False,
-                             doc='if true, 2D data reduction will be performed')
+                             doc='If true, 2D data reduction will be performed')
 
         self.declareProperty(MatrixWorkspaceProperty('OutputWorkspace', '', direction=Direction.Output),
-                             doc='result from Q1D or Qxy algorithm')
+                             doc='Name of the workspace that contains the result of the calculation. '
+                                 'Created automatically.')
 
-        self.declareProperty(MatrixWorkspaceProperty('OutputWorkspaceTransmission_Fit', '', direction=Direction.Output),
+        self.declareProperty(MatrixWorkspaceProperty('OutputWorkspaceTransmissionFit', '', direction=Direction.Output),
                              # This works only when transmission is True. Problems starts when it is not...
-                             doc='transmission_fit')
+                             doc='Counts vs wavelength, fit for the sample transmission')
 
     def validateInputs(self):
         inputs = dict()
@@ -154,22 +177,16 @@ class SANSDataProcessor(DataProcessorAlgorithm):
         ws_tranEmp = self.getProperty("TransmissionEmptyBeamWorkspace").value
         ws_tranMsk = self.getProperty("TransmissionMaskingWorkspace").value
 
-        scale = self.getProperty("ScalingFactor").value
-        thickness = self.getProperty("SampleThickness").value
-
-        radiuscut = self.getProperty("RadiusCut").value
-        wavecut = self.getProperty("WaveCut").value
-
         # -- Validation --
         sam_histograms = ws_sam.getNumberHistograms()
         if sam_histograms <= 0:
-            inputs["InputWorkspace"] = "hast to contain at least one spectrum"
+            inputs["InputWorkspace"] = "has to contain at least one spectrum"
         elif not ws_sam.isHistogramData():
             inputs["InputWorkspace"] = "has to be a histogram"
 
         if ws_samMsk:
             isinstance(ws_samMsk, IMaskWorkspace)
-                       
+
         if ws_blk:
             if not ws_blk.isHistogramData():
                 inputs["BlockedBeamWorkspace"] = "has to be a histogram"
@@ -177,7 +194,7 @@ class SANSDataProcessor(DataProcessorAlgorithm):
                 inputs["BlockedBeamWorkspace"] = "each spectrum must contain only one y value"
 
         if ws_emp.getNumberHistograms() != 1:
-            inputs["EmptyBeamSpectrumShapeWorkspace"] = "hast to contain only one spectrum"
+            inputs["EmptyBeamSpectrumShapeWorkspace"] = "has to contain only one spectrum"
         elif not ws_emp.isHistogramData():
             inputs["EmptyBeamSpectrumShapeWorkspace"] = "has to be a histogram"
 
@@ -191,7 +208,7 @@ class SANSDataProcessor(DataProcessorAlgorithm):
 
         tran_histograms = ws_tranSam.getNumberHistograms()
         if tran_histograms <= 0:
-            inputs["TransmissionWorkspace"] = "hast to contain at least one spectrum"
+            inputs["TransmissionWorkspace"] = "has to contain at least one spectrum"
         elif not ws_tranSam.isHistogramData():
             inputs["TransmissionWorkspace"] = "has to be a histogram"
 
@@ -202,19 +219,32 @@ class SANSDataProcessor(DataProcessorAlgorithm):
 
         if ws_tranMsk:
             isinstance(ws_tranMsk, IMaskWorkspace)
-              
+
+        inputs = self.check_geometry_and_cuts(inputs)
+
+        return inputs
+
+    def check_geometry_and_cuts(self, inputs):
+
+        scale = self.getProperty("ScalingFactor").value
+        thickness = self.getProperty("SampleThickness").value
+
+        radiuscut = self.getProperty("RadiusCut").value
+        wavecut = self.getProperty("WaveCut").value
+
         if scale <= 0.0:
             inputs["ScalingFactor"] = "has to be greater than zero"
 
         if thickness <= 0.0:
             inputs["SampleThickness"] = "has to be greater than zero"
-        return inputs  # - CHECK -why need it? I would believe it is optional
 
         if radiuscut < 0.0:
             inputs["radiuscut"] = "has to be equal or greater than zero"
 
         if wavecut < 0.0:
             inputs["wavecut"] = "has to be equal or greater than zero"
+
+        return inputs
 
     def PyExec(self):
         self.sanslog.warning(
@@ -252,7 +282,7 @@ class SANSDataProcessor(DataProcessorAlgorithm):
         account_for_gravity = self.getProperty("AccountForGravity").value
         solid_angle_weighting = self.getProperty("SolidAngleWeighting").value
         wide_angle_correction = self.getProperty("WideAngleCorrection").value
-        reduce_2d = self.getProperty("reduce_2D").value
+        reduce_2d = self.getProperty("Reduce2D").value
 
         # -- Masking --
         if ws_samMsk:
@@ -268,13 +298,13 @@ class SANSDataProcessor(DataProcessorAlgorithm):
             ws_tranSam = self._convert_units(ws_tranSam, "Wavelength")
             ws_tranEmp = self._convert_units(ws_tranEmp, "Wavelength")
 
-        # -- Transmission -- 
-        # Intuitively one would think rebin for NVS data is not needed, but it does;
+        # -- Transmission --
+        # Intuitively one would think rebin for NVS data is not needed, but it is required;
         # not perfect match in binning leads to error like "not matching intervals for calculate_transmission"
 
         ws_sam = self._rebin(ws_sam, binning_wavelength, preserveevents=False)
         ws_tranSam = self._rebin(ws_tranSam, binning_wavelength_transm, preserveevents=False)
-        
+
         ws_tranEmp = self._rebin(ws_tranEmp, binning_wavelength_transm, preserveevents=False)
 
         ws_tranroi = self._mask_to_roi(ws_tranMsk)
@@ -292,7 +322,7 @@ class SANSDataProcessor(DataProcessorAlgorithm):
         ws_tran = self._multiply(ws_tran, f)
 
         transmission_fit = ws_tran
-        self.setProperty("OutputWorkspaceTransmission_Fit", transmission_fit)
+        self.setProperty("OutputWorkspaceTransmissionFit", transmission_fit)
 
         # -- Blocked Beam Subtraction -- only if blk workspace has been provided (obviously)
         if ws_blk:
@@ -301,7 +331,7 @@ class SANSDataProcessor(DataProcessorAlgorithm):
 
             ws_blk_scaling = self._single_valued_ws(ws_sam_time / ws_blk_time)
 
-            # remove estimated blk counts from sample workspace        
+            # remove estimated blk counts from sample workspace
             self._apply_mask(ws_blk, ws_samMsk)  # masking blocked beam the same way as sample data
             if time_mode:
                 ws_blk = self._convert_units(ws_blk, "Wavelength")
@@ -313,7 +343,8 @@ class SANSDataProcessor(DataProcessorAlgorithm):
         # sensitivity
         pixeladj = ws_sen
 
-        ws_tran = self._emp_shape_adjustment(ws_tran, ws_emp)  # swap arrays; ws_emp is always be shorter or equal to ws_tran
+        ws_tran = self._emp_shape_adjustment(ws_tran,
+                                             ws_emp)  # swap arrays; ws_emp will always be shorter or equal to ws_tran
         wavelengthadj = self._multiply(ws_emp, ws_tran)
 
         # calculate the wide angle correction for sample transmission
@@ -330,9 +361,10 @@ class SANSDataProcessor(DataProcessorAlgorithm):
         ws_emp_time = self._get_frame_count(ws_emp)
         ws_sam_time = self._get_frame_count(ws_sam)
         scale_full = scale * (ws_emp_time / ws_sam_time)
-        # extra multiplier is needed because measured transmission is ~5% lower; we need to divide result by lower number, hence need to lowering the final result, i.e. divide by 1.05        
-        f = self._single_valued_ws(scale_full / (thickness*1.05))
-        
+        # extra multiplier is needed because measured transmission is ~5% lower;
+        # we need to divide result by lower number, hence need to lowering the final result, i.e. divide by 1.05
+        f = self._single_valued_ws(scale_full / (thickness * 1.05))
+
         if reduce_2d:
             q_max = binning_q[2]
             q_delta = binning_q[1]
@@ -341,31 +373,29 @@ class SANSDataProcessor(DataProcessorAlgorithm):
             qxy = self._multiply(qxy, f)
             self.setProperty("OutputWorkspace", qxy)
         else:
-            deltar = 5.0  # Virtual ring width on the detector (mm). Hardcoded. Not sure it is a good way to go.
-
             if (ws_sam.run().getProperty("source_aperture").value):
                 sourceapertureradius = float(ws_sam.run().getProperty("source_aperture").value) / 2.0
-                if sourceapertureradius > 40.0:
-                    sourceapertureradius = 20.0
-                    print "sourceapertureradius value cannot be retrieved; generic value of 20mm taken"
+                if sourceapertureradius > SOURCE_APERTURE_RADIUS_MAX:
+                    sourceapertureradius = SOURCE_APERTURE_RADIUS
+                    print("sourceapertureradius value cannot be retrieved; generic value of 20mm taken")
             else:
-                sourceapertureradius = 20.0  # radius in mm
-                print "sourceapertureradius value cannot be retrieved; generic value of 20mm taken"
+                sourceapertureradius = SOURCE_APERTURE_RADIUS  # radius in mm
+                print("sourceapertureradius value cannot be retrieved; generic value of 20mm taken")
 
             if (ws_sam.run().getProperty("sample_aperture").value):
                 sampleapertureradius = float(ws_sam.run().getProperty("source_aperture").value) / 2.0
-                if sampleapertureradius > 40.0:
-                    sampleapertureradius = 6.25
-                    print "sampleapertureradius value cannot be retrieved; generic value of 6.25mm taken"                    
+                if sampleapertureradius > SAMPLE_APERTURE_RADIUS_MAX:
+                    sampleapertureradius = SAMPLE_APERTURE_RADIUS
+                    print("sampleapertureradius value cannot be retrieved; generic value of 6.25mm taken")
             else:
-                sampleapertureradius = 6.25  # radius in mm
-                print "sampleapertureradius value cannot be retrieved; generic value of 6.25mm taken"                    
+                sampleapertureradius = SAMPLE_APERTURE_RADIUS  # radius in mm
+                print("sampleapertureradius value cannot be retrieved; generic value of 6.25mm taken")
 
-            # creating empty array for SigmaModerator
+                # creating empty array for SigmaModerator
             # SigmaModerator is a mandatory parameter for ISIS, but not needed for the reactor facility
-            number_of_bins = 10
-            number_of_spectra = 1
-            delta_wavelength = 0.1
+            number_of_bins = NUMBER_OF_BINS
+            number_of_spectra = NUMBER_OF_SPECTRA
+            delta_wavelength = DELTA_WAVELENGTH
 
             data_x = np.zeros(number_of_bins + 1)
             data_y = np.zeros(number_of_bins)
@@ -382,10 +412,10 @@ class SANSDataProcessor(DataProcessorAlgorithm):
 
             # Call TOFSANSResolutionByPixel
             ws_sam = self._multiply(ws_sam, f)
-            qresolution = self._tofsansresolutionbypixel(ws_sam, deltar, sampleapertureradius, sourceapertureradius,
+            qresolution = self._tofsansresolutionbypixel(ws_sam, sampleapertureradius, sourceapertureradius,
                                                          sigmamoderator, real_l1, account_for_gravity, extralength)
 
-            # Call Q1D, now with resolution         
+            # Call Q1D, now with resolution
             q1d = self._q1d(ws_sam, binning_q, pixeladj, wavelengthadj, wavepixeladj, account_for_gravity,
                             solid_angle_weighting, radiuscut, wavecut, extralength, qresolution)
 
@@ -461,18 +491,13 @@ class SANSDataProcessor(DataProcessorAlgorithm):
         return alg.getProperty("OutputWorkspace").value
 
     def _mask_to_roi(self, ws_mask):
-        # invert mask and then extract "masked" detectors in order to get ROI
-        # BUG in Mantid forces us to use AnalysisDataService
-        alg = AlgorithmManager.create("InvertMask")
-        alg.initialize()
+        alg = self.createChildAlgorithm("InvertMask")
         alg.setProperty("InputWorkspace", ws_mask)
-        alg.setPropertyValue("OutputWorkspace", "_ws")
         alg.execute()
-        ws_tranmskinv = AnalysisDataService.retrieve("_ws")
+        ws_tranmskinv = alg.getProperty("OutputWorkspace").value
         alg = self.createChildAlgorithm("ExtractMask")
         alg.setProperty("InputWorkspace", ws_tranmskinv)
         alg.execute()
-        AnalysisDataService.remove("_ws")
         return alg.getProperty("DetectorList").value
 
     def _calculate_transmission(self, ws_tranSam, ws_tranEmp, ws_tranroi, fitmethod, polynomialorder, binning):
@@ -512,8 +537,8 @@ class SANSDataProcessor(DataProcessorAlgorithm):
         alg.execute()
         return alg.getProperty("OutputWorkspace").value
 
-    def _tofsansresolutionbypixel(self, ws_sam, deltar, sampleapertureradius, sourceapertureradius, sigmamoderator,
-                                  collimationlength, accountforgravity, extralength):
+    def _tofsansresolutionbypixel(self, ws_sam, sampleapertureradius, sourceapertureradius, sigmamoderator,
+                                  collimationlength, accountforgravity, extralength, deltar=5.0):
         alg = self.createChildAlgorithm("TOFSANSResolutionByPixel")
         alg.setProperty("InputWorkspace", ws_sam)
         alg.setProperty("DeltaR", deltar)
@@ -580,4 +605,4 @@ class SANSDataProcessor(DataProcessorAlgorithm):
 
 
 # register algorithm
-AlgorithmFactory.subscribe(SANSDataProcessor)
+AlgorithmFactory.subscribe(BilbySANSDataProcessor)
