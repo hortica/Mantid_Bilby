@@ -7,10 +7,10 @@ For the Mac users, note to Click on the Mantid.app with the control key and sele
 
 - Download files [`BilbyCustomFunctions_Reduction.py`](/reduction_scripts_const/BilbyCustomFunctions_Reduction.py) and  [`shift_assembled.csv`](/reduction_scripts_const/shift_assembled.csv) from [`reduction_scripts_const`](/reduction_scripts_const) 
 
-- Script [`BilbyCustomFunctions_Reduction.py`](/reduction_scripts_const/BilbyCustomFunctions_Reduction.py) to copy/replace the script with the same name into the folder where MantidInstall is installed: ...  \MantidInstall\scripts.
+- Copy (relace) [`BilbyCustomFunctions_Reduction.py`](/reduction_scripts_const/BilbyCustomFunctions_Reduction.py) into the folder where MantidInstall is installed: ...  \MantidInstall\scripts;
 Note: remove the file with the same name but extention ".pyc" from \MantidInstall\scripts
 
-- Two file [`shift_assembled.csv`](/reduction_scripts_const/shift_assembled.csv) can be saved everywhere, but important thing is that the folder shall be on the path (added to “Mantid User Directories”)
+- File [`shift_assembled.csv`](/reduction_scripts_const/shift_assembled.csv) can be saved everywhere, but important thing is that the folder shall be on the path (added to “Mantid User Directories”)
    
 - Add the folder with your *.tar files AND two csv files ([`input_csv_example.csv`](/example_data_reduction_settings/input_csv_example.csv) and [`mantid_reduction_settings_example.csv`](/example_data_reduction_settings/mantid_reduction_settings_example.csv)) on the path (added to “Mantid User Directories”)
 
