@@ -9,7 +9,7 @@ For the Mac users, note to Click on the Mantid.app with the control key and sele
 
 - Copy (replace) [`BilbyCustomFunctions_Reduction.py`](/reduction_scripts_const/BilbyCustomFunctions_Reduction.py) into the folder where MantidInstall is installed: ...  \MantidInstall\scripts
 
-#### Note: remove the file with the same name "BilbyCustomFunctions_Reduction" but extention ".pyc" from \MantidInstall\scripts
+	* Note: remove the file with the same name "BilbyCustomFunctions_Reduction" but extention ".pyc" from \MantidInstall\scripts
 
 - File [`shift_assembled.csv`](/reduction_scripts_const/shift_assembled.csv) can be saved everywhere, but important thing is that the folder shall be on the path (added to “Mantid User Directories”)
    
