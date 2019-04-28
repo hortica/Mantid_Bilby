@@ -2,17 +2,16 @@
 
 - Two csv files, similar to ([`input_csv_example.csv`](/example_data_reduction_settings/input_csv_example.csv) and [`mantid_reduction_settings_example.csv`](/example_data_reduction_settings/mantid_reduction_settings_example.csv)) shall be created during the experiment; the names can be different, the format (especially the top line in each) must stay the same
 
-- download [Mantid](http://www.mantidproject.org/), install it; don't open it before the next step will be completed;< br />
+- download [Mantid](http://www.mantidproject.org/), install it; don't open it before the next step will be completed;
 For the Mac users, note to Click on the Mantid.app with the control key and select package contents; after that it will be come obvious where the *.py files should go
 
-- Download scripts from [`reduction_scripts_const`](/reduction_scripts_const) 
+- Download files [`BilbyCustomFunctions_Reduction.py`](/reduction_scripts_const/BilbyCustomFunctions_Reduction.py) and  [`shift_assembled.csv`](/reduction_scripts_const/shift_assembled.csv) from [`reduction_scripts_const`](/reduction_scripts_const) 
 
-- Script [`SANSDataProcessor.py`](/reduction_scripts_const/SANSDataProcessor.py) to be copied into folder where MantidInstall is installed: ...  \MantidInstall\plugins\python\algorithms\WorkflowAlgorithms
+- Script [`BilbyCustomFunctions_Reduction.py`](/reduction_scripts_const/BilbyCustomFunctions_Reduction.py) to copy/replace the script with the same name into the folder where MantidInstall is installed: ...  \MantidInstall\scripts.
+Note: remove the file with the same name but extention ".pyc" from \MantidInstall\scripts
 
-- Two following scripts can be saved everywhere, but important thing is that the folder shall be on the path (added to “Mantid User Directories”)
-   * [`BilbyCustomFunctions_Reduction.py`](/reduction_scripts_const/BilbyCustomFunctions_Reduction.py)
-   * [`shift_assembled.csv`](/reduction_scripts_const/shift_assembled.csv)
-
+- Two file [`shift_assembled.csv`](/reduction_scripts_const/shift_assembled.csv) can be saved everywhere, but important thing is that the folder shall be on the path (added to “Mantid User Directories”)
+   
 - Add the folder with your *.tar files AND two csv files ([`input_csv_example.csv`](/example_data_reduction_settings/input_csv_example.csv) and [`mantid_reduction_settings_example.csv`](/example_data_reduction_settings/mantid_reduction_settings_example.csv)) on the path (added to “Mantid User Directories”)
 
 	* To keep it simple, one can put tar and csv files in one folder, but you can add as many folders on the paths as you want
