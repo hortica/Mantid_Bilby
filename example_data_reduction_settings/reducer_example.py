@@ -11,7 +11,7 @@ ansto_logger = Logger("AnstoDataReduction")
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # INPUT - mandatory from a USER - START
 ###########################################################################################
-red_settings = FileFinder.getFullPath('settings_csv_7442.csv')
+red_settings = FileFinder.getFullPath('mantid_reduction_settings_example.csv')
 
 # INPUT - index of a line with reduction parameters
 index_reduction_settings = ["0"] # INDEX OF THE LINE WITH REDUCTION SETTINGS
@@ -20,7 +20,7 @@ if len(index_reduction_settings) > 1: # must be single choice
     raise ValueError('Please check your choice of reduction settigns; only single value is allowed')    
 
 # ID to evaluate - INPUT, in any combination of 'a-b' or ',c', or empty line; empty line means evaluate all files listed in csv
-index_files_to_reduce = "22"  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
+index_files_to_reduce = "0"  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
 
 # Data file with numbers 
 path_tube_shift_correction = FileFinder.getFullPath('shift_assembled.csv')
@@ -194,17 +194,17 @@ for current_file in files_to_reduce:
     # scaling: attenuation
     att_pos = float(ws_tranSam.run().getProperty("att_pos").value)
     
-    scale = BilbyCustomFunctions_Reduction.AttenuationCorrection(att_pos, data_before_May_2016)
+    scale = BilbyCustomFunctions_Reduction.attenuation_correction(att_pos, data_before_May_2016)
     print "scale, aka attenuation factor", scale
        
     thickness = current_file["thickness [cm]"]
 
     # Cd / Al masks shift   
     if correct_tubes_shift:
-        BilbyCustomFunctions_Reduction.CorrectionTubesShift(ws_sam, path_tube_shift_correction)    
+        BilbyCustomFunctions_Reduction.correction_tubes_shift(ws_sam, path_tube_shift_correction)    
 
     if data_before_2016:
-        BilbyCustomFunctions_Reduction.DetShift_before2016(ws_sam)    
+        BilbyCustomFunctions_Reduction.det_shift_before_2016(ws_sam)    
 
     #Blocked beam 
     ws_blocked_beam = 'No blocked beam used'  # default value for the blocked beam; used for the header file
@@ -212,7 +212,7 @@ for current_file in files_to_reduce:
         ws_blocked_beam = current_file["BlockedBeam"]+'.tar'
         ws_blk = LoadBBY(ws_blocked_beam)
         if correct_tubes_shift:
-            BilbyCustomFunctions_Reduction.CorrectionTubesShift(ws_blk, path_tube_shift_correction)            
+            BilbyCustomFunctions_Reduction.correction_tubes_shift(ws_blk, path_tube_shift_correction)            
     else:
          ws_blk = None
 
