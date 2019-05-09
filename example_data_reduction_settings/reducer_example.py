@@ -17,12 +17,12 @@ red_settings = FileFinder.getFullPath('mantid_reduction_settings_example.csv')
 index_reduction_settings = ["0"] # INDEX OF THE LINE WITH REDUCTION SETTINGS
     
 if len(index_reduction_settings) > 1: # must be single choice
-    raise ValueError('Please check your choice of reduction settigns; only single value is allowed')    
+    raise ValueError('Please check your choice of reduction settigns; only single value is allowed')
 
 # ID to evaluate - INPUT, in any combination of 'a-b' or ',c', or empty line; empty line means evaluate all files listed in csv
 index_files_to_reduce = "0"  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
 
-# Data file with numbers 
+# Data file with numbers
 path_tube_shift_correction = FileFinder.getFullPath('shift_assembled.csv')
 
 ###########################################################################################
@@ -39,7 +39,7 @@ solid_angle_weighting = True #False
 wide_angle_correction = False
 blocked_beam = True #False
 
-if wide_angle_correction == True:
+if wide_angle_correction is True:
     print "WARNING: wide_angle_correction is set to", wide_angle_correction, "which will lead to the wrong calculations of error bars."
     print "WARNING: highly recommended to change the wide_angle_correction value to FALSE."
 
@@ -77,7 +77,7 @@ binning_wavelength_transmission_original = binning_wavelength_transmission
 # Check of wavelength range: transmission range must be equal or longer than the wavelength binning range for data reduction
 if (binning_wavelength_ini[0] < binning_wavelength_transmission[0]) or (binning_wavelength_ini[2] > binning_wavelength_transmission[2]):
     raise ValueError("Range for transmission binning shall be equal or wider than the range for the sample wavelength binning (refer to line 94)")    
-    
+
 # Binning for Q
 binning_q_str = current_reduction_settings[0]["binning_q"]
 binning_q = BilbyCustomFunctions_Reduction.read_convert_to_float(binning_q_str)  
@@ -97,7 +97,7 @@ except:
 transmission_fit_ini = current_reduction_settings[0]["transmission_fit"]
 if (transmission_fit_ini != "Linear")  and (transmission_fit_ini != "Log") and (transmission_fit_ini != "Polynomial"):
     raise ValueError("Check value of transmission_fit; it can be only \"Linear\", \"Log\" or \"Polynomial\", first letter is mandatory capital")    
-    
+
 PolynomialOrder = current_reduction_settings[0]["PolynomialOrder"]
 
 # Wavelength interval: if reduction on wavelength intervals is needed
@@ -109,26 +109,26 @@ wav_delta = 0.0 # set the value, needed for the "wavelengh_slices" function
 # If needed to reduce 2D - this option is a defining one for the overall reduction
 reduce_2D_input = current_reduction_settings[0]["reduce_2D"].lower()
 reduce_2D = BilbyCustomFunctions_Reduction.string_boolean(reduce_2D_input)
-if reduce_2D: 
+if reduce_2D:
     print "2D reduction is performing. Q interval and number of points are taking into account; Q-binning intervals are ignored."
     try:
         number_data_points_2D = float(current_reduction_settings[0]["2D_number_data_points"]) # for 2D Q-binning is not intuitive, hence only number of points is needed
     except:
         raise ValueError("Number of points shall be given")
-                
+
     plot_2D = current_reduction_settings[0]["plot_2D"].lower()
     plot_2D = BilbyCustomFunctions_Reduction.string_boolean(plot_2D)
     binning_q[1] = (binning_q[0] + binning_q[2]) / number_data_points_2D # To replace deltaQ from the input file
-    
+
 ######################################
- # Calling function to read given csv file   
+ # Calling function to read given csv file
 parameters = BilbyCustomFunctions_Reduction.files_list_reduce(csv_files_to_reduce_list)
 files_to_reduce = BilbyCustomFunctions_Reduction.files_to_reduce(parameters, index_files_to_reduce)
 if len(files_to_reduce) == 0:
-    raise ValueError('Please check index_files_to_reduce; chosen one does not exist')    
+    raise ValueError('Please check index_files_to_reduce; chosen one does not exist')
 
 # reduce requested files one by one
-for current_file in files_to_reduce:                              
+for current_file in files_to_reduce:
     sam_file = current_file["Sample"]+'.tar'
     StartTime = current_file["StartTime"]
     EndTime = current_file["EndTime"]
@@ -136,13 +136,13 @@ for current_file in files_to_reduce:
 #Error message & Stop - to add
 
     if ((not StartTime) and (EndTime)) or ((StartTime) and (not EndTime)):
-        raise ValueError("Check StartTime and EndTime values; either both or none shall be intered.")    
-    
+        raise ValueError("Check StartTime and EndTime values; either both or none shall be intered.")
+
     if (not StartTime) and (not EndTime):
         ws_sam = LoadBBY(sam_file)
         time_range = ''
     elif (float(StartTime)) > (float(EndTime)):
-        raise ValueError("Check StartTime and EndTime values; EndTime cannot be smaller than StartTime.")            
+        raise ValueError("Check StartTime and EndTime values; EndTime cannot be smaller than StartTime.")        
     else:
         ws_sam = LoadBBY(sam_file)     # test loader: to check if given StartTime and EndTime are reasonable
         Real_EndTime_max = float(ws_sam.run().getProperty('bm_counts').value)
@@ -150,7 +150,7 @@ for current_file in files_to_reduce:
             raise ValueError('EndTime value is wrong, it is more than 10%% larger than the data collection time: %7.2f' %Real_EndTime_max)
         ws_sam = LoadBBY(sam_file, FilterByTimeStart = StartTime, FilterByTimeStop = EndTime)    # now to load file within requested time slice if values are feasible
         time_range = '_' + StartTime + '_' + EndTime
-       
+
     # To read the mode value: True - ToF; False - NVS; this will define some steps inside SANSDataProcessor
     try:
         external_mode = (ws_sam.run().getProperty("is_tof").value)
@@ -163,10 +163,10 @@ for current_file in files_to_reduce:
         # a patch to change NVS resolution to 10%; currently the loader is giving +-10%, but it shall be +-5%
         # the real change shall be done in the loader
         # issue found: transmission fit workds on one data point and on three data points, but do not work on 2
-        binning_wavelength_ini = ( ws_sam.readX(0)[0] + updated_interval_to_match_NVS_resolution/2,  \
-                                                (ws_sam.readX(0)[ws_sam.blocksize()] - ws_sam.readX(0)[0])/2, \
-                                                  ws_sam.readX(0)[ws_sam.blocksize()] - updated_interval_to_match_NVS_resolution/2 )
-        binning_wavelength_transmission = binning_wavelength_ini  
+        binning_wavelength_ini = ( ws_sam.readX(0)[0] + updated_interval_to_match_NVS_resolution/2,
+                                  (ws_sam.readX(0)[ws_sam.blocksize()] - ws_sam.readX(0)[0])/2,
+                                   ws_sam.readX(0)[ws_sam.blocksize()] - updated_interval_to_match_NVS_resolution/2 )
+        binning_wavelength_transmission = binning_wavelength_ini
         if wavelength_intervals:
             wavelength_intervals = False
             print "NVS: monochromatic mode"
@@ -177,7 +177,7 @@ for current_file in files_to_reduce:
             wavelength_intervals = wavelength_intervals_original    
             if wavelength_intervals:
                 wav_delta = float(current_reduction_settings[0]["wav_delta"]) # no need to read if the previous is false
-                
+    
     # empty beam scattering in transmission mode
     ws_emp_file = current_file["T_EmptyBeam"]+'.tar'
     ws_emp = LoadBBY(ws_emp_file)    # Note that this is of course a transmission measurement - shall be long
@@ -193,10 +193,10 @@ for current_file in files_to_reduce:
 
     # scaling: attenuation
     att_pos = float(ws_tranSam.run().getProperty("att_pos").value)
-    
+
     scale = BilbyCustomFunctions_Reduction.attenuation_correction(att_pos, data_before_May_2016)
     print "scale, aka attenuation factor", scale
-       
+
     thickness = current_file["thickness [cm]"]
 
     # Cd / Al masks shift   
@@ -206,7 +206,7 @@ for current_file in files_to_reduce:
     if data_before_2016:
         BilbyCustomFunctions_Reduction.det_shift_before_2016(ws_sam)    
 
-    #Blocked beam 
+    #Blocked beam
     ws_blocked_beam = 'No blocked beam used'  # default value for the blocked beam; used for the header file
     if blocked_beam:
         ws_blocked_beam = current_file["BlockedBeam"]+'.tar'
@@ -222,7 +222,7 @@ for current_file in files_to_reduce:
     # empty beam normalisation
     ws_emp = MaskDetectors("ws_emp", MaskedWorkspace=ws_tranMsk) # does not have to be ws_tranMsk, can be a specific mask
     ws_emp = ConvertUnits("ws_emp", Target="Wavelength")
- 
+
     # wavelenth intervals: building  binning_wavelength list 
     binning_wavelength, n = BilbyCustomFunctions_Reduction.wavelengh_slices(wavelength_intervals, binning_wavelength_ini, wav_delta)
 
@@ -235,31 +235,31 @@ for current_file in files_to_reduce:
     suffix_2 = current_file["additional_description"].strip()
     if suffix_2 != '':
         suffix += '_' + suffix_2
-                
+
     for i in range (n):
         ws_emp_partial = Rebin("ws_emp", Params=binning_wavelength[i])
         ws_emp_partial = SumSpectra(ws_emp_partial, IncludeMonitors=False)           
-     
+
         if reduce_2D:
            base_output_name = sam_file[0:10]+'_2D_'+ str(round(binning_wavelength[i][0], 3)) +'_'+ str(round(binning_wavelength[i][2],3)) + time_range + suffix  #A core of output name; made from the name of the input sample        
         else:
-            if external_mode:            
+            if external_mode:
                base_output_name = sam_file[0:10]+'_'+ str(round(binning_wavelength[i][0], 3)) +'_'+ str(round(binning_wavelength[i][2],3)) + time_range + suffix  #A core of output name; made from the name of the input sample            
             else:
-               base_output_name = sam_file[0:10]+ suffix + time_range  #A core of output name; made from the name of the input sample                       
-               
+               base_output_name = sam_file[0:10]+ suffix + time_range  #A core of output name; made from the name of the input sample             
+
         transmission_fit = transmission_fit_ini # needed here, otherwise SANSDataProcessor replaced it with "transmission_fit" string
 
-        output_workspace, transmission_fit = BilbySANSDataProcessor(InputWorkspace=ws_sam, InputMaskingWorkspace=ws_samMsk, \
-                                  BlockedBeamWorkspace=ws_blk, EmptyBeamSpectrumShapeWorkspace=ws_emp_partial, SensitivityCorrectionMatrix=ws_sen, \
-                                  TransmissionWorkspace=ws_tranSam, TransmissionEmptyBeamWorkspace=ws_tranEmp, TransmissionMaskingWorkspace=ws_tranMsk, \
-                                  ScalingFactor=scale, SampleThickness=thickness, \
-                                  FitMethod=transmission_fit, PolynomialOrder=PolynomialOrder, \
-                                  BinningWavelength=binning_wavelength[i], BinningWavelengthTransm=binning_wavelength_transmission, BinningQ=binning_q, \
-                                  TimeMode = external_mode, AccountForGravity=account_for_gravity, SolidAngleWeighting=solid_angle_weighting, \
-                                  RadiusCut = RadiusCut, WaveCut = WaveCut, \
-                                  WideAngleCorrection=wide_angle_correction, \
-                                  Reduce2D = reduce_2D, \
+        output_workspace, transmission_fit = BilbySANSDataProcessor(InputWorkspace=ws_sam, InputMaskingWorkspace=ws_samMsk,
+                                  BlockedBeamWorkspace=ws_blk, EmptyBeamSpectrumShapeWorkspace=ws_emp_partial, SensitivityCorrectionMatrix=ws_sen,
+                                  TransmissionWorkspace=ws_tranSam, TransmissionEmptyBeamWorkspace=ws_tranEmp, TransmissionMaskingWorkspace=ws_tranMsk,
+                                  ScalingFactor=scale, SampleThickness=thickness,
+                                  FitMethod=transmission_fit, PolynomialOrder=PolynomialOrder,
+                                  BinningWavelength=binning_wavelength[i], BinningWavelengthTransm=binning_wavelength_transmission, BinningQ=binning_q,
+                                  TimeMode = external_mode, AccountForGravity=account_for_gravity, SolidAngleWeighting=solid_angle_weighting,
+                                  RadiusCut = RadiusCut, WaveCut = WaveCut,
+                                  WideAngleCorrection=wide_angle_correction,
+                                  Reduce2D = reduce_2D,
                                   OutputWorkspace = base_output_name)
         #print mtd.getObjectNames()
         #print transmission_fit.getHistory()
@@ -293,9 +293,10 @@ for current_file in files_to_reduce:
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
             f = open(savefile, "w") # open file re-wring existing one
-            for line in header: # write the rest of the header in the file            
+            for line in header: # write the rest of the header in the file      
                with open(savefile, 'a') as f_out:
                   f_out.write(line+'\n')
+            f.close()                
            #to sort out the list & define what is in for ToF
 
             SaveAscii(InputWorkspace = base_output_name, Filename = savefile, WriteXError = True, WriteSpectrumID = False, Separator = "CSV", AppendToFile = True) #saving file
