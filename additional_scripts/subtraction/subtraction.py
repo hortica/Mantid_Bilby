@@ -17,9 +17,9 @@ index_files_to_subtract = "17"                                                  
 
 # =====================================================================================================
 # creating array of data from the input list
-parameters = BilbyCustomFunctions_Reduction.FilesListReduce(subtraction_list)
+parameters = BilbyCustomFunctions_Reduction.files_list_reduce(subtraction_list)
 
-files_to_subtract = BilbyCustomFunctions_Reduction.FilesToReduce(parameters, index_files_to_subtract)
+files_to_subtract = BilbyCustomFunctions_Reduction.files_to_reduce(parameters, index_files_to_subtract)
 #mtd.clear()
 if len(files_to_subtract) == 0:
     raise ValueError('Please check index_files_to_subtract; chosen one does not exist')    
