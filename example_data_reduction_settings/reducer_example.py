@@ -118,7 +118,7 @@ if reduce_2D:
 
     plot_2D = current_reduction_settings[0]["plot_2D"].lower()
     plot_2D = BilbyCustomFunctions_Reduction.string_boolean(plot_2D)
-    binning_q[1] = (binning_q[0] + binning_q[2]) / number_data_points_2D # To replace deltaQ from the input file
+    binning_q[1] = (binning_q[2] - binning_q[0]) / number_data_points_2D # To replace deltaQ from the input file
 
 ######################################
  # Calling function to read given csv file
