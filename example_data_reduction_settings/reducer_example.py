@@ -159,13 +159,10 @@ for current_file in files_to_reduce:
 
     if (not external_mode): # Internal frame source has been used during data collection; it is not always NVS only, one can have both, NVS and choppers running for this mode
         print "Internal frame source. Binning range is taken from the sample scattering data." 
-        updated_interval_to_match_NVS_resolution = (ws_sam.readX(0)[ws_sam.blocksize()] - ws_sam.readX(0)[0])/2
-        # a patch to change NVS resolution to 10%; currently the loader is giving +-10%, but it shall be +-5%
-        # the real change shall be done in the loader
-        # issue found: transmission fit workds on one data point and on three data points, but do not work on 2
-        binning_wavelength_ini = ( ws_sam.readX(0)[0] + updated_interval_to_match_NVS_resolution/2,
-                                  (ws_sam.readX(0)[ws_sam.blocksize()] - ws_sam.readX(0)[0])/2,
-                                   ws_sam.readX(0)[ws_sam.blocksize()] - updated_interval_to_match_NVS_resolution/2 )
+        # issue found: transmission fit works on one data point and on three data points, but do not work on 2
+        binning_wavelength_ini = ( ws_sam.readX(0)[0],
+                                  (ws_sam.readX(0)[ws_sam.blocksize()] - ws_sam.readX(0)[0]), ws_sam.readX(0)[ws_sam.blocksize()])
+        mean_wavelength = round((ws_sam.readX(0)[0] + ws_sam.readX(0)[ws_sam.blocksize()])/2, 1) # for output file name
         binning_wavelength_transmission = binning_wavelength_ini
         if wavelength_intervals:
             wavelength_intervals = False
@@ -241,12 +238,12 @@ for current_file in files_to_reduce:
         ws_emp_partial = SumSpectra(ws_emp_partial, IncludeMonitors=False)           
 
         if reduce_2D:
-           base_output_name = sam_file[0:10]+'_2D_'+ str(round(binning_wavelength[i][0], 3)) +'_'+ str(round(binning_wavelength[i][2],3)) + time_range + suffix  #A core of output name; made from the name of the input sample        
+           base_output_name = sam_file[0:10]+'_2D_'+ str(round(binning_wavelength[i][0], 1)) +'_'+ str(round(binning_wavelength[i][2],1)) + time_range + suffix  #A core of output name; made from the name of the input sample        
         else:
             if external_mode:
-               base_output_name = sam_file[0:10]+'_'+ str(round(binning_wavelength[i][0], 3)) +'_'+ str(round(binning_wavelength[i][2],3)) + time_range + suffix  #A core of output name; made from the name of the input sample            
+               base_output_name = sam_file[0:10]+'_'+ str(round(binning_wavelength[i][0], 1)) +'_'+ str(round(binning_wavelength[i][2],1)) + time_range + suffix  #A core of output name; made from the name of the input sample            
             else:
-               base_output_name = sam_file[0:10]+ suffix + time_range  #A core of output name; made from the name of the input sample             
+               base_output_name = sam_file[0:10] + '_' + str(mean_wavelength) + time_range + suffix  #A core of output name; made from the name of the input sample             
 
         transmission_fit = transmission_fit_ini # needed here, otherwise SANSDataProcessor replaced it with "transmission_fit" string
 
