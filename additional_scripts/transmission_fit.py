@@ -48,7 +48,7 @@ DetectorList = ExtractMask(InputWorkspace = ws_tranMskInv, OutputWorkspace = 'te
 ws_tranROI = DetectorList[1]
 #Just to check
 size = DetectorList[1].size
-print size
+print (size)
 DeleteWorkspace('_ws')
 DeleteWorkspace('test')
 

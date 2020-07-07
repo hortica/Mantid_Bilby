@@ -19,20 +19,20 @@ def curtain_q(idc, n, dx, separation, L2_curtain):
     #2.81mm is the pixel size
     x1 = np.ones(n) + dx
     y1 = separation + 2.81/2 + 2.81*np.arange(0, n)
-    ws_max = CreateWorkspace(OutputWorkspace="wl_max_"+idc, UnitX="Q", DataX=q_value(wl_max, y1[:], L2_curtain), DataY=x1)
+    ws_max = CreateWorkspace(OutputWorkspace='wl_max_'+idc, UnitX='Q', DataX=q_value(wl_max, y1[:], L2_curtain), DataY=x1)
     delta_step_wl_max = ws_max.readX(0)[1] - ws_max.readX(0)[0] 
 
-    ws_min = CreateWorkspace(OutputWorkspace="wl_min_"+idc, UnitX="Q", DataX=q_value(wl_min, y1[:], L2_curtain), DataY=x1)
+    ws_min = CreateWorkspace(OutputWorkspace='wl_min_'+idc, UnitX='Q', DataX=q_value(wl_min, y1[:], L2_curtain), DataY=x1)
     delta_step_wl_min= ws_min.readX(0)[1] - ws_min.readX(0)[0] 
       
     return  ws_max, delta_step_wl_max, ws_min, delta_step_wl_min
 
 #INPUT 
 # wavelengths =================================================================================
-wl_range = [4.0, 18.0]                # wavelength, Angstroms  
+wl_range = [6.0, 6.5]                # wavelength, Angstroms  
 
 assymetry_expected_horizontal_only = False # Added to be sure that no gaps are appearing on the data when half of the curtains are masked off
-assymetry_expected_vertical_only = True     # Added to be sure that no gaps are appearing on the data when half of the curtains are masked off
+assymetry_expected_vertical_only = False     # Added to be sure that no gaps are appearing on the data when half of the curtains are masked off
 Bragg_edge_suspected = False                       # Added to be sure that no short wavelengths (<4.5A) are considered for the samples wiht the Bragg edge
 
 
@@ -51,7 +51,7 @@ separation_u = 200                    # distance from the last inner tube on a c
 separation_d = 200                 # distance from the last inner tube on a curtain to the beam center, in mm
 
 #Curtains left & right
-L2_curtain_lr = 2500                   # sample - curtain distance, in mm, assumed the same for left and right
+L2_curtain_lr = 1500                   # sample - curtain distance, in mm, assumed the same for left and right
 separation_l = 140                       # distance from the last inner tube on a curtain to the beam center, in mm
 separation_r = 350                       # distance from the last inner tube on a curtain to the beam center, in mm
 
@@ -60,23 +60,23 @@ separation_r = 350                       # distance from the last inner tube on 
 
 direct_shadow = L2_det*source_aper/L1 + (L2_det + L1)*sample_aper/L1
 direct_shadow_radius = direct_shadow/2
-print "Direct beam shadow radius is %5.2f" % direct_shadow_radius, 'mm'
+print ('Direct beam shadow radius is %5.2f' % direct_shadow_radius, 'mm')
 
 # wavelength range ================================================================================
 wl_min = wl_range[0]
 if Bragg_edge_suspected:
     if (wl_min < 4.5 ):
         wl_min = 4.5
-        print "Min wavelength value has been changed from ", wl_range[0], "to 4.5A because of the possible Bragg edge appearance."
+        print ('Min wavelength value has been changed from ', wl_range[0], 'to 4.5A because of the possible Bragg edge appearance.')
 
 wl_max = wl_range[1]
-print "Q (1/Angstrom) values for wavelengths range from ", wl_range, 'Angstroms'
+print ('Q (1/Angstrom) values for wavelengths range from ', wl_range, 'Angstroms')
 
 # Q calculations ===================================================================================
 # REAR detector
-print "============ Rear detector ============"
+print ('============ Rear detector ============')
 #max_width  = math.sqrt((separation_u + panel_width) **2 + panel_width**2)
-#print "bs, direct_shadow, direct_shadow_radius"
+#print 'bs, direct_shadow, direct_shadow_radius'
 #print bs, direct_shadow, direct_shadow_radius
 
 if direct_shadow_radius >  bs: # if chosen bs is large, bigger than the shadow
@@ -91,8 +91,8 @@ ws_max, delta_step_wl_max, ws_min, delta_step_wl_min = curtain_q('rear', nn, 0.0
 
 #print mtd.getObjectNames()
 
-print("Qmin for rear and Step for max wavelength: %5.4f %5.4f" % (ws_max.readX(0)[0], delta_step_wl_max))
-print("Qmax for rear and Step for min wavelength: %5.4f %5.4f" % (ws_min.readX(0)[nn-1] , delta_step_wl_min))
+print('Qmin for rear and Step for max wavelength: %5.4f %5.4f' % (ws_max.readX(0)[0], delta_step_wl_max))
+print('Qmax for rear and Step for min wavelength: %5.4f %5.4f' % (ws_min.readX(0)[nn-1] , delta_step_wl_min))
 
 #plot([ws_max,ws_min],  [0], color='green', hold='on')
 #print l.numCurves()
@@ -109,47 +109,47 @@ n = 118 #330mm divided by 2.8mm pixel size
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 if assymetry_expected_horizontal_only is False:
-    print "=================== Top Curtain ==================="
+    print ('=================== Top Curtain ===================')
 
     ws_max, delta_step_wl_max, ws_min, delta_step_wl_min = curtain_q('curtain_u', n, 0.5, separation_u, L2_curtain_ud)
 
-    print("Qmin for top curtain and Step for max wavelength: %5.4f %5.4f" % (ws_max.readX(0)[0], delta_step_wl_max))
-    print("Qmax for top curtain and Step for min wavelength: %5.4f %5.4f" % (ws_min.readX(0)[n-1] , delta_step_wl_min))
+    print('Qmin for top curtain and Step for max wavelength: %5.4f %5.4f' % (ws_max.readX(0)[0], delta_step_wl_max))
+    print('Qmax for top curtain and Step for min wavelength: %5.4f %5.4f' % (ws_min.readX(0)[n-1] , delta_step_wl_min))
 
     g1 = plot([ws_max,ws_min],  [0])
     g = mergePlots (g, g1)
     #c - how to make it work properly??
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
-    print "================= Bottom Curtain ==================="
+    print ('================= Bottom Curtain ===================')
 
     ws_max, delta_step_wl_max, ws_min, delta_step_wl_min = curtain_q('curtain_d', n, 1.0, separation_d, L2_curtain_ud)
 
-    print("Qmin for bottom curtain and Step for max wavelength: %5.4f %5.4f" % (ws_max.readX(0)[0], delta_step_wl_max))
-    print("Qmax for bottom curtain and Step for min wavelength: %5.4f %5.4f" % (ws_min.readX(0)[n-1] , delta_step_wl_min))
+    print('Qmin for bottom curtain and Step for max wavelength: %5.4f %5.4f' % (ws_max.readX(0)[0], delta_step_wl_max))
+    print('Qmax for bottom curtain and Step for min wavelength: %5.4f %5.4f' % (ws_min.readX(0)[n-1] , delta_step_wl_min))
 
     g1 = plot([ws_max,ws_min],  [0])
     g = mergePlots (g, g1)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
 if assymetry_expected_vertical_only is False:
-    print "================= Left Curtain ==================="
+    print ('================= Left Curtain ===================')
 
     ws_max, delta_step_wl_max, ws_min, delta_step_wl_min = curtain_q('curtain_l', n, 1.5, separation_l, L2_curtain_lr)
-    print("Qmin for left curtain and Step for max wavelength: %5.4f %5.4f" % (ws_max.readX(0)[0], delta_step_wl_max))
+    print('Qmin for left curtain and Step for max wavelength: %5.4f %5.4f' % (ws_max.readX(0)[0], delta_step_wl_max))
 
-    print("Qmax for left curtain and Step for min wavelength: %5.4f %5.4f" % (ws_min.readX(0)[n-1] , delta_step_wl_min))
+    print('Qmax for left curtain and Step for min wavelength: %5.4f %5.4f' % (ws_min.readX(0)[n-1] , delta_step_wl_min))
 
     g1 = plot([ws_max,ws_min],  [0])
     g = mergePlots (g, g1)
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------
-    print "================= Right Curtain =================="
+    print ('================= Right Curtain ==================')
 
     ws_max, delta_step_wl_max, ws_min, delta_step_wl_min = curtain_q('curtain_r', n, 2.0, separation_r, L2_curtain_lr)
 
-    print("Qmin for right curtain and Step for max wavelength: %5.4f %5.4f" % (ws_max.readX(0)[0], delta_step_wl_max))
-    print("Qmax for right curtain and Step for min wavelength: %5.4f %5.4f" % (ws_min.readX(0)[n-1] , delta_step_wl_min))
+    print('Qmin for right curtain and Step for max wavelength: %5.4f %5.4f' % (ws_max.readX(0)[0], delta_step_wl_max))
+    print('Qmax for right curtain and Step for min wavelength: %5.4f %5.4f' % (ws_min.readX(0)[n-1] , delta_step_wl_min))
 
     g1 = plot([ws_max,ws_min],  [0])
     g = mergePlots (g, g1)

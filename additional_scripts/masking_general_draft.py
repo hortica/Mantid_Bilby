@@ -8,7 +8,7 @@ from pylab import *
 # User input start
 
 ## Choice of detectors
-detector = "all" # all, rear, curtains, lr_only, ud_only, left, right, top, bottom
+detector = 'all' # all, rear, curtains, lr_only, ud_only, left, right, top, bottom
 
 # 0 angle is along OX axis (from the middle of the detector to the right, looking along beam centreline)
 # 90 angle is along OY axis, the vertical one 
@@ -28,30 +28,30 @@ inner_rad = 20.0 # in cm - radia  of the annulus, origin is a geometrical center
 outer_rad = 25.0
 
 ##  Symmetry. Mirror is not possible for the annulus_sector
-symmetry = "P1" # P1, mirror, mirror_OY, mirror_OX, P2, P4, P6  # if mirror chosen, the sector will be reflected around OX and OY
+symmetry = 'P1' # P1, mirror, mirror_OY, mirror_OX, P2, P4, P6  # if mirror chosen, the sector will be reflected around OX and OY
 
 ## File needed to create the mask - any file on the Mantid path, needed as an input detectors' map and useful for checking the outcome mask
-file_input = "BBY0014343.tar"
+file_input = 'BBY0019744.tar'
 
 ## path and filename for xml file to be saved - this script cannot guess where to save the file
 path_main = 'D:/Mantid/__my_scripts/masking/'
-filename = "mask_test.xml" # Choose the name of mask file to be created
+filename = 'mask_test.xml' # Choose the name of mask file to be created
 
 # User input end
 #  ##################################################################################
 
 # Check input for the angle, radii and symmetry ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-if symmetry != "P1":
+if symmetry != 'P1':
     if (phimin > 180.0) or (phimax > 180.0) or (phimax < phimin):
-        print "For any symmetry apart form P1, angle must belong to the range from 0 to 180deg, and max angle cannot be smaller than min. "
+        print ('For any symmetry apart form P1, angle must belong to the range from 0 to 180deg, and max angle cannot be smaller than min.')
         sys.exit()
 else:
    if (phimin > 360.0) or (phimax > 360.0): # or (phimax < phimin):
-       print "For P1 symmetry, angle values cannot exceed 360 deg"
+       print ('For P1 symmetry, angle values cannot exceed 360 deg')
        sys.exit()
 
 if (phimin < 0.0) or (phimax < 0.0): # or (phimax < phimin):
-    print "Angle values cannot be negative"
+    print ('Angle values cannot be negative')
     sys.exit()       
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -59,26 +59,26 @@ if not(annulus_sector):
     inner_rad = 0.0
     outer_rad = 100.0
 else:
-    if (symmetry == "mirror" or symmetry == "mirror_OY" or symmetry == "mirror_OX"):
-        print "For the annulus_sector mode symmetry \"mirror\", \"mirror_OY\", \"mirror_OX\" is not applicable."
+    if (symmetry == 'mirror' or symmetry == 'mirror_OY' or symmetry == 'mirror_OX'):
+        print ('For the annulus_sector mode symmetry \'mirror\', \'mirror_OY\', \'mirror_OX\' is not applicable.')
         sys.exit()        
 if (inner_rad < 0.0) or (outer_rad > 100.0) or (outer_rad < inner_rad):
-    print "Radii range is from 0cm to 100cm; outer radius cannot be smaller than the inner one"
+    print ('Radii range is from 0cm to 100cm; outer radius cannot be smaller than the inner one')
     sys.exit()
        
 if  (phimin == phimax):
-    print "Are you sure that it is OK to have angles the same?" 
+    print ('Are you sure that it is OK to have angles the same?')
     sys.exit()
 # End of the check input for the angle, radii and symmetry ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
   
 # Print output ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-print "Detectors ", detector
-print "phimin, phimax", phimin, phimax
-print "annulus_sector: ", annulus_sector
+print ('Detectors ', detector)
+print ('phimin, phimax', phimin, phimax)
+print ('annulus_sector: ', annulus_sector)
 if (annulus_sector):
-    print "inner_rad ", inner_rad, "cm"
-    print "outer_rad ", outer_rad, "cm"   
-print "symmetry ", symmetry
+    print ('inner_rad ', inner_rad, 'cm')
+    print ('outer_rad ', outer_rad, 'cm')   
+print ('symmetry ', symmetry)
 # End of print output ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
 #############################################################################
@@ -114,45 +114,45 @@ class TestingStaff():
         detector_range_high = 61440
         xml_extra = []
 
-        if self.detector == "rear":
+        if self.detector == 'rear':
             detector_range_low = 40960
             detector_range_high = 61440
-            xml_extra = [("0-40959")]
+            xml_extra = [('0-40959')]
         
-        if self.detector == "curtains":
+        if self.detector == 'curtains':
             detector_range_low = 0
             detector_range_high = 40960
-            xml_extra = [("40960-61439")]
+            xml_extra = [('40960-61439')]
        
-        if self.detector == "lr_only":
+        if self.detector == 'lr_only':
             detector_range_low = 0
             detector_range_high = 20480
-            xml_extra = [("20480-61439")]
+            xml_extra = [('20480-61439')]
             
-        if self.detector == "ud_only":
+        if self.detector == 'ud_only':
             detector_range_low = 20480
             detector_range_high = 40960
-            xml_extra = [("0-20479, 40960-61439")]
+            xml_extra = [('0-20479, 40960-61439')]
             
-        if self.detector == "left":
+        if self.detector == 'left':
             detector_range_low = 0
             detector_range_high = 10240
-            xml_extra = [("10240-61439")]
+            xml_extra = [('10240-61439')]
 
-        if self.detector == "right":
+        if self.detector == 'right':
             detector_range_low = 10240
             detector_range_high = 20480
-            xml_extra = [("0-10240, 20480-61439")]
+            xml_extra = [('0-10240, 20480-61439')]
             
-        if self.detector == "top":
+        if self.detector == 'top':
             detector_range_low = 20480
             detector_range_high = 30720
-            xml_extra = [("0-20479, 30720-61439")]
+            xml_extra = [('0-20479, 30720-61439')]
 
-        if self.detector == "bottom":
+        if self.detector == 'bottom':
             detector_range_low = 30720
             detector_range_high = 40960
-            xml_extra = [("0-30720, 40960-61439")]            
+            xml_extra = [('0-30720, 40960-61439')]            
 
         self.xml_extra = xml_extra
 # detectors selection ends =================================================================================
@@ -163,7 +163,7 @@ class TestingStaff():
         if (self.annulus_sector): # annulus_sector True
             for i in range(detector_range_low, detector_range_high):              # for rear only the range will be ...
                 detector = ws_file_input.getDetector(i)
-                if (self.symmetry == "P1"):
+                if (self.symmetry == 'P1'):
                     if (phimin < phimax):                    
                         if  ( ( (math.pow(detector.getPos()[0], 2) + (math.pow(detector.getPos()[1], 2))) < (math.pow(self.inner_rad*0.01 ,2))  ) \
                                or ( (math.pow(detector.getPos()[0], 2) + (math.pow(detector.getPos()[1], 2))) > (math.pow(self.outer_rad*0.01 ,2)) ) \
@@ -174,13 +174,13 @@ class TestingStaff():
                                or ( (math.pow(detector.getPos()[0], 2) + (math.pow(detector.getPos()[1], 2))) > (math.pow(self.outer_rad*0.01 ,2)) ) \
                                or ( ((detector.getPhi()) * C <= (180.0 - self.phimax) and (detector.getPhi())*C >= (180.0 - self.phimin) )):
                             detector_to_mask.append(i)
-                elif (self.symmetry == "P2"):
+                elif (self.symmetry == 'P2'):
                     if  ( (math.pow(detector.getPos()[0], 2) + (math.pow(detector.getPos()[1], 2))) < (math.pow(self.inner_rad*0.01 ,2))  ) \
                         or ( (math.pow(detector.getPos()[0], 2) + (math.pow(detector.getPos()[1], 2))) > (math.pow(self.outer_rad*0.01 ,2)) ) \
                         or ( not(detector.getPhi() * C <= (180.0 - self.phimin) and (detector.getPhi())*C >= (180.0 - self.phimax) )) \
                         and ( not((detector.getPhi()) * C <= ((-1)*self.phimin) and (detector.getPhi())*C >= ((-1)*self.phimax) ) ):
                       detector_to_mask.append(i)                            
-                elif (self.symmetry == "P4"):
+                elif (self.symmetry == 'P4'):
                     if  ( (math.pow(detector.getPos()[0], 2) + (math.pow(detector.getPos()[1], 2))) < (math.pow(self.inner_rad*0.01 ,2))  ) \
                         or ( (math.pow(detector.getPos()[0], 2) + (math.pow(detector.getPos()[1], 2))) > (math.pow(self.outer_rad*0.01 ,2)) ) \
                         or ( not(detector.getPhi() * C <= (180.0 - self.phimin) and (detector.getPhi())*C >= (180.0 - self.phimax) )) \
@@ -189,7 +189,7 @@ class TestingStaff():
                         and ( not((detector.getPhi()) * C <= (270.0 - self.phimin) and (detector.getPhi())*C >= (270.0 - self.phimax) ) )\
                         and ( not((detector.getPhi()) * C <= (-90.0 - self.phimin) and (detector.getPhi())*C >= (-90.0 - self.phimax) ) ):
                       detector_to_mask.append(i)
-                elif (self.symmetry == "P6"):
+                elif (self.symmetry == 'P6'):
                     if  ( (math.pow(detector.getPos()[0], 2) + (math.pow(detector.getPos()[1], 2))) < (math.pow(self.inner_rad*0.01 ,2))  ) \
                         or ( (math.pow(detector.getPos()[0], 2) + (math.pow(detector.getPos()[1], 2))) > (math.pow(self.outer_rad*0.01 ,2)) ) \
                         or ( not(detector.getPhi() * C <= (180.0 - self.phimin - 60.0) and (detector.getPhi())*C >= (120.0 - self.phimax) )) \
@@ -204,24 +204,24 @@ class TestingStaff():
         else:  # annulus_sector False
             for i in range(detector_range_low, detector_range_high):
                 detector = ws_file_input.getDetector(i)
-                if (self.symmetry == "mirror"):
+                if (self.symmetry == 'mirror'):
                     if  ((math.pow(detector.getPos()[0], 2)/ (math.pow(self.ellipse_horiz_semi_axis_to_mask*0.01 ,2)) + (math.pow(detector.getPos()[1], 2)/ math.pow(self.ellipse_vert_semi_axis_to_mask*0.01, 2))) <= 1.0) \
                        or ( not(detector.getPhi() * C <= (180.0 - self.phimin) and (detector.getPhi())*C >= (180.0 - self.phimax) )) \
                        and ( not((detector.getPhi()) * C >= (self.phimin) and (detector.getPhi())*C <= (self.phimax) ) ) \
                        and ( not((detector.getPhi()) * C >= (self.phimin - 180.0) and (detector.getPhi())*C <= (self.phimax - 180.0) ) )  \
                        and ( not((detector.getPhi()) * C <= ((-1)*self.phimin) and (detector.getPhi())*C >= ((-1)*self.phimax) ) ):
                      detector_to_mask.append(i)
-                if (self.symmetry == "mirror_OY"):
+                if (self.symmetry == 'mirror_OY'):
                     if  ((math.pow(detector.getPos()[0], 2)/ (math.pow(self.ellipse_horiz_semi_axis_to_mask*0.01 ,2)) + (math.pow(detector.getPos()[1], 2)/ math.pow(self.ellipse_vert_semi_axis_to_mask*0.01, 2))) <= 1.0) \
                        or ( not(detector.getPhi() * C <= (180.0 - self.phimin) and (detector.getPhi())*C >= (180.0 - self.phimax) )) \
                        and ( not((detector.getPhi()) * C >= (self.phimin) and (detector.getPhi())*C <= (self.phimax) ) ):
                      detector_to_mask.append(i)                     
-                if (self.symmetry == "mirror_OX"):
+                if (self.symmetry == 'mirror_OX'):
                     if  ((math.pow(detector.getPos()[0], 2)/ (math.pow(self.ellipse_horiz_semi_axis_to_mask*0.01 ,2)) + (math.pow(detector.getPos()[1], 2)/ math.pow(self.ellipse_vert_semi_axis_to_mask*0.01, 2))) <= 1.0) \
                        or ( not(detector.getPhi() * C <= (180.0 - self.phimin) and (detector.getPhi())*C >= (180.0 - self.phimax) )) \
                        and ( not((detector.getPhi()) * C >= (self.phimin - 180.0) and (detector.getPhi())*C <= (self.phimax - 180.0) ) ):
                      detector_to_mask.append(i)  
-                elif (self.symmetry == "P1"):
+                elif (self.symmetry == 'P1'):
                     if (phimin < phimax): 
                         if  ((math.pow(detector.getPos()[0], 2)/ (math.pow(self.ellipse_horiz_semi_axis_to_mask*0.01 ,2)) + (math.pow(detector.getPos()[1], 2)/ math.pow(self.ellipse_vert_semi_axis_to_mask*0.01, 2))) <= 1.0) \
                             or ( not((detector.getPhi()) * C <= (180.0 - self.phimin) and (detector.getPhi())*C >= (180.0 - self.phimax) )):
@@ -230,12 +230,12 @@ class TestingStaff():
                         if  ((math.pow(detector.getPos()[0], 2)/ (math.pow(self.ellipse_horiz_semi_axis_to_mask*0.01 ,2)) + (math.pow(detector.getPos()[1], 2)/ math.pow(self.ellipse_vert_semi_axis_to_mask*0.01, 2))) <= 1.0) \
                             or ( ((detector.getPhi()) * C <= (180.0 - self.phimax) and (detector.getPhi())*C >= (180.0 - self.phimin) )):
                             detector_to_mask.append(i)
-                elif (self.symmetry == "P2"):
+                elif (self.symmetry == 'P2'):
                     if  ((math.pow(detector.getPos()[0], 2)/ (math.pow(self.ellipse_horiz_semi_axis_to_mask*0.01 ,2)) + (math.pow(detector.getPos()[1], 2)/ math.pow(self.ellipse_vert_semi_axis_to_mask*0.01, 2))) <= 1.0) \
                         or ( not(detector.getPhi() * C <= (180.0 - self.phimin) and (detector.getPhi())*C >= (180.0 - self.phimax) )) \
                         and ( not((detector.getPhi()) * C <= ((-1)*self.phimin) and (detector.getPhi())*C >= ((-1)*self.phimax) ) ):
                         detector_to_mask.append(i)
-                elif (self.symmetry == "P4"):
+                elif (self.symmetry == 'P4'):
                     if  ((math.pow(detector.getPos()[0], 2)/ (math.pow(self.ellipse_horiz_semi_axis_to_mask*0.01 ,2)) + (math.pow(detector.getPos()[1], 2)/ math.pow(self.ellipse_vert_semi_axis_to_mask*0.01, 2))) <= 1.0) \
                        or ( not(detector.getPhi() * C <= (180.0 - self.phimin) and (detector.getPhi())*C >= (180.0 - self.phimax) )) \
                        and ( not(detector.getPhi() * C <= (90.0 - self.phimin) and (detector.getPhi())*C >= (90.0 - self.phimax) )) \
@@ -243,7 +243,7 @@ class TestingStaff():
                        and ( not((detector.getPhi()) * C <= (270.0 - self.phimin) and (detector.getPhi())*C >= (270.0 - self.phimax) ) )\
                        and ( not((detector.getPhi()) * C <= (-90.0 - self.phimin) and (detector.getPhi())*C >= (-90.0 - self.phimax) ) ):
                        detector_to_mask.append(i)
-                elif (self.symmetry == "P6"):
+                elif (self.symmetry == 'P6'):
                     if  ((math.pow(detector.getPos()[0], 2)/ (math.pow(self.ellipse_horiz_semi_axis_to_mask*0.01 ,2)) + (math.pow(detector.getPos()[1], 2)/ math.pow(self.ellipse_vert_semi_axis_to_mask*0.01, 2))) <= 1.0) \
                         or ( not(detector.getPhi() * C <= (180.0 - self.phimin - 60.0) and (detector.getPhi())*C >= (120.0 - self.phimax) )) \
                         and ( not(detector.getPhi() * C <= (180.0 - self.phimin - 120.0) and (detector.getPhi())*C >= (60.0 - self.phimax) )) \
@@ -276,7 +276,7 @@ xml_line, xml_extra = settings.do_something() # execute method inside the class
 xml_line_1 = ['<?xml version="1.0"?>', '<detector-masking>', '<group>', '<detids>']
 xml_line_2 = ['</detids>', '</group>', '</detector-masking>']
 
-xml_edges = [("0-14,245-270,501-526,757-782,1013-1038,1269-1294,1525-1550,1781-1806,2037-2062,2293-2318,2549-2574,2805-2830,\
+xml_edges = [('0-14,245-270,501-526,757-782,1013-1038,1269-1294,1525-1550,1781-1806,2037-2062,2293-2318,2549-2574,2805-2830,\
               3061-3086,3317-3342,3573-3598,3829-3854,4085-4110,4341-4366,4597-4622,4853-4878,5109-5134,5365-5390,5621-5646,\
               5877-5902,6133-6158,6389-6414,6645-6670,6901-6926,7157-7182,7413-7438,7669-7694,7925-7950,8181-8206,8437-8462,\
               8693-8718,8949-8974,9205-9230,9461-9486,9717-9742,9973-9998,10229-10253,10484-10509,10740-10765,10996-11021,\
@@ -301,14 +301,14 @@ xml_edges = [("0-14,245-270,501-526,757-782,1013-1038,1269-1294,1525-1550,1781-1
               53232-53263,53488-53519,53744-53775,54000-54031,54256-54287,54512-54543,54768-54799,55024-55055,55280-55311,\
               55536-55567,55792-55823,56048-56079,56304-56335,56560-56591,56816-56847,57072-57103,57328-57359,57584-57615,\
               57840-57871,58096-58127,58352-58383,58608-58639,58864-58895,59120-59151,59376-59407,59632-59663,59888-59919,\
-              60144-60175,60400-60431,60656-60687,60912-60943,61168-61199,61424-61439")]
+              60144-60175,60400-60431,60656-60687,60912-60943,61168-61199,61424-61439')]
 
 #############################################################################
 # record info into xml file
 filename_path = os.path.join(os.path.expanduser(path_main), filename) # taken from User input, above
 
 with open(filename_path, 'w') as f_ini: # mask file will be re-written, if existed
-    wr = csv.writer(f_ini, delimiter='\n', lineterminator='\n',  quotechar="", quoting=csv.QUOTE_NONE)
+    wr = csv.writer(f_ini, delimiter='\n', lineterminator='\n',  quotechar='', quoting=csv.QUOTE_NONE)
     wr.writerow(xml_line_1) 
     wr = csv.writer(f_ini, delimiter=',', escapechar=' ',  quoting=csv.QUOTE_NONE)
     wr.writerow(xml_line + xml_edges + xml_extra) # main thing: list of detectors ID 
@@ -326,4 +326,4 @@ mask = filename_path
 ws_mask = LoadMask('Bilby', mask)
 MaskDetectors(ws_file_input, MaskedWorkspace=ws_mask) 
 
-print FileFinder.getFullPath(filename_path)
+print (FileFinder.getFullPath(filename_path))
