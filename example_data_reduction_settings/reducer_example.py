@@ -1,6 +1,15 @@
+# 22 July 2021: plots update
+# 30 June 2021
+# PlotSpectrum works, MergePlots - not anymore
+# Line 308: there were wrong brackets there, therefore it was not printing
+
+# import mantid algorithms
+from mantid.simpleapi import *
+ 
 from mantid import *
 import numpy as np
 import os, csv, math
+import matplotlib.pylab as plt
 from mantid.kernel import Logger
 
 import BilbyCustomFunctions_Reduction
@@ -13,13 +22,13 @@ ansto_logger = Logger('AnstoDataReduction')
 red_settings = FileFinder.getFullPath('mantid_reduction_settings_example.csv')
 
 # INPUT - index of a line with reduction parameters
-index_reduction_settings = ['0'] # INDEX OF THE LINE WITH REDUCTION SETTINGS
+index_reduction_settings = ['2'] # INDEX OF THE LINE WITH REDUCTION SETTINGS
     
 if len(index_reduction_settings) > 1: # must be single choice
     raise ValueError('Please check your choice of reduction settigns; only single value is allowed')
 
 # ID to evaluate - INPUT, in any combination of 'a-b' or ',c', or empty line; empty line means evaluate all files listed in csv
-index_files_to_reduce = '0'  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
+index_files_to_reduce = '0,1'  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
 
 # Data file with numbers
 path_tube_shift_correction = FileFinder.getFullPath('shift_assembled.csv')
@@ -132,6 +141,7 @@ for current_file in files_to_reduce:
     StartTime = current_file['StartTime']
     EndTime = current_file['EndTime']
 #Errors: if trying to reduce time slice larger than the total time of the measurement:
+#Errors: if trying to reduce time slice larger than the total time of the measurement:
 #Error message & Stop - to add
 
     if ((not StartTime) and (EndTime)) or ((StartTime) and (not EndTime)):
@@ -232,6 +242,13 @@ for current_file in files_to_reduce:
     if suffix_2 != '':
         suffix += '_' + suffix_2
 
+# Prepare figure formatting for 1D case; needed here, otherwise it will be a figure per wavelength slice
+    fig, data_1D = plt.subplots(subplot_kw={'projection': 'mantid'})
+    plt.tick_params(axis='x', direction='in'), plt.tick_params(axis='y', direction='in')
+    data_1D.set_xscale('log'), data_1D.set_yscale('log')
+    data_1D.set_xlabel('q ($\\AA^{-1}$)'), data_1D.set_ylabel('1/cm')
+# End plot formatting section
+
     for i in range (n):
         ws_emp_partial = Rebin('ws_emp', Params=binning_wavelength[i])
         ws_emp_partial = SumSpectra(ws_emp_partial, IncludeMonitors=False)           
@@ -261,26 +278,52 @@ for current_file in files_to_reduce:
         #print transmission_fit.getHistory()
 
 ### ================================================================================
-        if reduce_2D:
-            plot2Dgraph = plot2D(base_output_name)
-            n_2D = output_workspace.name() + '.png'
-            SavePlot = os.path.join(os.path.expanduser(reduced_files_path), n_2D)
-            plot2Dgraph.export(SavePlot)
-            print ('2D File Exists:'), os.path.exists(SavePlot)
+### Data ploting and saving
+        if reduce_2D:        
+            fig, data_2D = plt.subplots(subplot_kw={'projection': 'mantid'})
+            from mantid.api import AnalysisDataService as ADS
+            data_to_plot = ADS.retrieve(base_output_name)            
+  
+            c = data_2D.pcolormesh(data_to_plot)
+            data_2D.set_title(base_output_name)
+            fig.colorbar(c) # shows the color bar
+            fig.set_label('Intensity (1/cm)"')
+
+            # Saving plots
+            n_2D_png = output_workspace.name() + '.png'
+            n_2D_png_path = os.path.join(os.path.expanduser(reduced_files_path), n_2D_png)
+            fig.savefig(n_2D_png_path)
+            n_2D_pdf = output_workspace.name() + '.pdf'
+            n_2D_pdf_path = os.path.join(os.path.expanduser(reduced_files_path), n_2D_pdf)
+            fig.savefig(n_2D_pdf_path)
+     
+            if (plot_2D): fig.show()
+            
+            # 2D data saving in two formats
             SaveNxs = os.path.join(os.path.expanduser(reduced_files_path), output_workspace.name() + '.nxs')
             SaveNISTDAT(output_workspace.name(), SaveNxs)
-            if not plot_2D: plot2Dgraph.close() # is there more elegant way to do it? Problem is that plot2Dgraph creates and plot the graph file at the same time...
-        else:
-            BilbyCustomFunctions_Reduction.strip_NaNs(output_workspace, base_output_name)  
-            if i == 0:
-                plot1Dgraph = plotSpectrum(base_output_name, 0, distribution=DistrFlag.DistrFalse,  clearWindow=False) # to create first graph to stick all the rest to it; perhaps there is more elegant way of creating initial empty handler, but I am not aware ... yet
-            else:             
-                plot1Dgraph_continue = mergePlots(plot1Dgraph, plotSpectrum(base_output_name, 0, distribution=DistrFlag.DistrFalse, clearWindow=False))
-        
-       #Section for file saving
+            print ('2D nxs file exists: ', os.path.exists(SaveNxs))
+            SaveH5 = os.path.join(os.path.expanduser(reduced_files_path), output_workspace.name() + '.h5')
+            SaveNXcanSAS(output_workspace.name(), SaveH5)
+            print ('2D h5 file exists: ', os.path.exists(SaveH5))
+            
+        else: # 1D reduction          
+            from mantid.api import AnalysisDataService as ADS
+            data_to_plot = ADS.retrieve(base_output_name)
+            data_1D.errorbar(data_to_plot, label = data_to_plot)
+            plt.legend()
+            try:
+               fig.show()
+            except: # Mitigating the case when the plot is closed during creation; it is not good to close the plot before all wavelenght slices are complete.
+               fig, data_1D = plt.subplots(subplot_kw={'projection': 'mantid'})
+               data_1D.errorbar(data_to_plot, label = data_to_plot) # The first plot will be done on default settings, which is not pretty but clear to show that something went wrong
+               data_1D.set_xscale('log'), data_1D.set_yscale('log')
+               fig.show()
+               
+            # 1D file saving
+            BilbyCustomFunctions_Reduction.strip_NaNs(output_workspace, base_output_name)               
             n_1D = base_output_name +'.dat'       # 1D output file; name based on 'base_output_name' construct
             savefile = os.path.join(os.path.expanduser(reduced_files_path), n_1D)          # setting up full path
-
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 #something new 26 March 2019
@@ -297,7 +340,7 @@ for current_file in files_to_reduce:
 
             SaveAscii(InputWorkspace = base_output_name, Filename = savefile, WriteXError = True, WriteSpectrumID = False, Separator = 'CSV', AppendToFile = True) #saving file
             print (savefile)
-            print ('1D File Exists:'), os.path.exists(savefile)            
+            print ('1D File Exists:' , os.path.exists(savefile))
 
 ### ================================================================================
 # - add subtraction of the background -- later
