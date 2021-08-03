@@ -1,11 +1,15 @@
-
 # 2018-06-26 Include reactor power and cold source temp
-# 20 December 2019 HM2 & global update
+# 2021-07-21: Remove bug with opening output file; add checks if the parameter is presented in the file
 
 __script__.title = 'BBY Overview'
-__script__.version = '2019-12-20 include HM2 magnet + update'
+__script__.version = '2019-12-10 include HM2 magnet'
 
+# Use inout: full path to the output file
 __FOLDER_PATH__ = 'U:/data/proposal/07998/'
+
+#if not os.path.exists(__FOLDER_PATH__):
+#    os.makedirs(__FOLDER_PATH__)
+
 
 # Setup the window panel
 ####################################################################################
@@ -132,7 +136,7 @@ g0.add(Reactor_power_tick, ColdSourceTemp_tick)
 
 export_tick = Par('bool', True)
 export_tick.title = 'export'
-exportfilename = Par('string', 'test_anna')
+exportfilename = Par('string', 'Overview_7998')
 exportfilename.title = 'Filename'
 '''
 # will be added later
@@ -156,8 +160,7 @@ def __run_script__(fns):
     else :
         pass
 
-        f = open(__FOLDER_PATH__ + str(exportfilename.value) + '.csv', 'a+')        
-        if_header_recorded = False # so that header is only written once
+        i = 0 # so that header is only written once
               # careful here; if trying to get information for data from different proposals,
               # file will be recorded badly
         
@@ -166,279 +169,268 @@ def __run_script__(fns):
             ds = df[fn]
             filename = os.path.basename(fn) # gets rid of the path
             filename = filename[:filename.find('.nx.hdf')] # gets rid of the hdf
-            print filename
-
             header = []
             data = []
             header.append('filename')
             data.append(filename)
-
+            print 'filename ', filename
+            
             if SampleName_tick.value:     #~~~~~~~~~~~~~~~~~~~~~   
-                header.append('SampleName')                
                 a = str(ds['entry1/sample/name'])
-                data.append(a.replace(',' , '___'))
+                if ((a == 'UNKNOWN') or (not(a))):
+                    a = "none"
+                    data.append(a)
+                else:
+                    data.append(a.replace(',' , '___'))
+                header.append('SampleName')
+                #print 'SampleName', a
 
             if SamplePosition_tick.value: #~~~~~~~~~~~~~~~~~~~~~ 
-                header.append('SamplePosition')                
                 a = str(ds['entry1/sample/samx'])
                 # Value of 20 is a bit synthetic, taken from checking the array
                 # In case of multiple entry it contains some meta information
                 if (len(a)>20):
-                    a = 'run scan'                    
-                    #print 'samx', ' multiple data, possibly ranscan'
+                    print 'samx', ' multiple data, possibly ranscan'
+                    a = 'run scan'
                 else:
                     a = '%6.3f' %float(a)                      
                     #print 'samx', ' single entry', a
                 data.append(a)
+                header.append('SamplePosition')              
 
             if StartTime_tick.value:      #~~~~~~~~~~~~~~~~~~~~~
-                header.append('Start Time')                
                 a = str(ds['entry1/instrument/detector/daq_dirname'])
                 a = a.replace('DAQ_','')
                 a = a.replace('T',' ')
                 data.append(a)
+                header.append('Start Time')   
 
             if EndTime_tick.value:        #~~~~~~~~~~~~~~~~~~~~~
-                header.append('End Time')                 
                 a = str(ds['entry1/end_time'])
                 data.append(a)
+                header.append('End Time') 
 
             if RunTime_tick.value:        #~~~~~~~~~~~~~~~~~~~~~
-                header.append('Run Time')                
                 a = str(ds['entry1/instrument/detector/time'])
                 # Value of 20 is a bit synthetic, taken from checking the array
                 # In case of multiple entry it contains some meta information        
                 # The same comment is applicable to all values below        
                 if (len(a)>20):
+                    print 'RunTime', ' multiple data, possibly ranscan'
                     a = 'run scan'
-                    #print 'RunTime', ' multiple data, possibly ranscan'
                 else:
                     a = '%8.2f' %float(a)
                     #print 'RunTime', ' single entry', a
                 data.append(a)
+                header.append('Run Time')
                 
             if TotalCounts_tick.value:    #~~~~~~~~~~~~~~~~~~~~~ 
-                header.append('Total Counts')                
                 a = str(ds['entry1/instrument/detector/total_counts'])
                 if (len(a)>20):
+                    print 'TotalCounts', ' multiple data, possibly ranscan'
                     a = 'run scan'
-                    #print 'TotalCounts', ' multiple data, possibly ranscan'
                 else:
                     a = '%12.2f' %float(a)
                     #print 'TotalCounts', ' single entry', a                
                 data.append(a)
+                header.append('Total Counts')
 
             if Att_tick.value:            #~~~~~~~~~~~~~~~~~~~~~
-                header.append('Attenuator')                
                 a = str(ds['entry1/instrument/att_pos'])
                 if (len(a)>20):
+                    print 'Attenuator position', ' multiple data, possibly ranscan'
                     a = 'run scan'
-                    #print 'Attenuator position', ' multiple data, possibly ranscan'                    
                 else:
                     a = '%5.1f' %float(a)
                     #print 'Attenuator position', ' single entry', a                
                 data.append(a)
+                header.append('Attenuator')
                 
             if SampleAperture_tick.value: #~~~~~~~~~~~~~~~~~~~~~  
-                header.append('Sample Aperture')
                 try:
                     a = str(ds['entry1/sample/sample_aperture'])
                     #print 'SampleAperture ', a
                 except:
-                    a = 'N/A'                    
-                    #print 'Nonsense, but Sample Aperture is not in the file'
+                    a = 'Nonsense but Sample Aperture is not in the file'
+                    print 'Nonsense, but Sample Aperture is not in the file'
                 data.append(a)
+                header.append('Sample Aperture')              
 
             if L1_tick.value:              #~~~~~~~~~~~~~~~~~~~~~ 
-                header.append('L1 [mm]')
                 a = str(ds['entry1/instrument/L1'])
                 if (len(a)>20):
-                    #print 'L1', ' multiple data, possibly ranscan'
+                    print 'L1', ' multiple data, possibly ranscan'
                     a = 'run scan'
                 else:
                     a = '%8.3f' %float(a)
                     #print 'L1', ' single entry', a                
                 data.append(a)
+                header.append('L1 [mm]')
 
             if L2det_tick.value:           #~~~~~~~~~~~~~~~~~~~~~ 
-                header.append('L2 rear [mm]')                
                 a = str(ds['entry1/instrument/L2_det'])
                 if (len(a)>20):
-                    #print 'L2_det', ' multiple data, possibly ranscan'
+                    print 'L2_det', ' multiple data, possibly ranscan'
                     a = 'run scan'
                 else:
                     a = '%8.3f' %float(a)
                     #print 'L2_det', ' single entry', a                
                 data.append(a)
+                header.append('L2 rear [mm]')                                
 
             if L2curtainLR_tick.value:     #~~~~~~~~~~~~~~~~~~~~~
-                header.append('L2 curtain LR [mm]')                
                 a = str(ds['entry1/instrument/L2_curtainr'])
                 if (len(a)>20):
-                    #print 'L2_curtainr', ' multiple data, possibly ranscan'
+                    print 'L2_curtainr', ' multiple data, possibly ranscan'
                     a = 'run scan'
                 else:
                     a = '%8.3f' %float(a)
                     #print 'L2_curtainr', ' single entry', a                      
                 data.append(a)
+                header.append('L2 curtain LR [mm]')
 
             if L2curtainUD_tick.value:     #~~~~~~~~~~~~~~~~~~~~~  
-                header.append('L2 curtain UD [mm]')                
                 a = str(ds['entry1/instrument/L2_curtainu'])
                 if (len(a)>20):
-                    #print 'L2_curtainu', ' multiple data, possibly ranscan'
+                    print 'L2_curtainu', ' multiple data, possibly ranscan'
                     a = 'run scan'
                 else:
                     a = '%8.3f' %float(a)
                     #print 'L2_curtainu', ' single entry', a               
                 data.append(a)
+                header.append('L2 curtain UD [mm]')
 
             if curtainL_tick.value:        #~~~~~~~~~~~~~~~~~~~~~
-                header.append('curtain L [mm]')                
                 a = str(ds['entry1/instrument/detector/curtainl'])
                 if (len(a)>20):
-                    #print 'curtainl', ' multiple data, possibly ranscan'
+                    print 'curtainl', ' multiple data, possibly ranscan'
                     a = 'run scan'
                 else:
                     a = '%8.3f' %float(a)
                     #print 'curtainl', ' single entry', a       
                 data.append(a)
+                header.append('curtain L [mm]')
 
             if curtainR_tick.value:        #~~~~~~~~~~~~~~~~~~~~~
-                header.append('curtain R [mm]')                
                 a = str(ds['entry1/instrument/detector/curtainr'])
                 if (len(a)>20):
-                    a = 'run scan'                    
-                    #print 'curtainR', ' multiple data, possibly ranscan'
+                    print 'curtainR', ' multiple data, possibly ranscan'
+                    a = 'run scan'
                 else:
                     a = '%8.3f' %float(a)
                     #print 'curtainR', ' single entry', a                
                 data.append(a)
+                header.append('curtain R [mm]')                
 
             if curtainU_tick.value:        #~~~~~~~~~~~~~~~~~~~~~
-                header.append('curtain U [mm]')                
                 a = str(ds['entry1/instrument/detector/curtainu'])
                 if (len(a)>20):
-                    a = 'run scan'                    
-                    #print 'curtainU', ' multiple data, possibly ranscan'
+                    print 'curtainU', ' multiple data, possibly ranscan'
+                    a = 'run scan'
                 else:
                     a = '%8.3f' %float(a)
                     #print 'curtainU', ' single entry', a                
                 data.append(a)
+                header.append('curtain U [mm]')               
 
             if curtainD_tick.value:        #~~~~~~~~~~~~~~~~~~~~~
-                header.append('curtain D [mm]')                
                 a = str(ds['entry1/instrument/detector/curtaind'])
                 if (len(a)>20):
-                    #print 'curtainD', ' multiple data, possibly ranscan'
+                    print 'curtainD', ' multiple data, possibly ranscan'
                     a = 'run scan'
                 else:
                     a = '%8.3f' %float(a)
                     #print 'curtainD', ' single entry', a                
                 data.append(a)
+                header.append('curtain D [mm]')
 
             if MasterChopper1_tick.value:   #~~~~~~~~~~~~~~~~~~~~~ 
-                header.append('Master Chopper 1')                
-                a = str(ds['entry1/instrument/master1_chopper_id'])
+                try:
+                    a = str(ds['entry1/instrument/master1_chopper_id'])
+                except:
+                    a = 'Choppers not in use'
                 data.append(a)
+                header.append('Master Chopper 1')                
 
             if MasterChopper2_tick.value:   #~~~~~~~~~~~~~~~~~~~~~
-                header.append('Master Chopper 2')                
                 try:   
-                    a = str(ds['entry1/instrument/master2_chopper_id'])
+                    a = str(ds['entry1/instrument/master2_chopper_id'])                
                 except:
-                    a = 'N/A'                    
-                    #print 'Choppers not in use'
+                    a = 'Choppers not in use'
                 data.append(a)
-
+                header.append('Master Chopper 2')
+                    
             if MasterChopperFreq_tick.value: #~~~~~~~~~~~~~~~~~~~~~
-                header.append('Master Chopper Freq [Hz]')                
                 try:   
                     a = str(ds['entry1/instrument/master_chopper_freq'])
                     if (len(a)>20):
-                        #print 'master_chopper_freq', ' multiple data, possibly ranscan'
+                        print 'master_chopper_freq', ' multiple data, possibly ranscan'
                         a = 'run scan'
                     else:
                         a = '%8.3f' %float(a)
                         #print 'master_chopper_freq', ' single entry', a                    
                 except:
-                    a = 'N/A'                    
-                    #print 'Choppers not in use'                
+                    a = 'Choppers not in use'
                 data.append(a)
-
+                header.append('Master Chopper Freq [Hz]')             
+      
             if T0Chopper_tick.value:         #~~~~~~~~~~~~~~~~~~~~~
-                header.append('T0 Chopper ID')                
                 try:
                     a = str(ds['entry1/instrument/t0_chopper_id'])  # array
                     if (len(a)>20):
-                        #print 't0_chopper_id', ' multiple data, possibly ranscan'
+                        print 't0_chopper_id', ' multiple data, possibly ranscan'
                         a = 'run scan'
                     else:
                         a = '%8.3f' %float(a)
                         #print 't0_chopper_id', ' single entry', a                    
                 except:
-                    a = 'N/A'                    
-                    #print 'Choppers not in use'
+                    a = 'Choppers not in use'
                 data.append(a)
-
+                header.append('T0 Chopper ID')
+                
             if T0ChopperFreq_tick.value:      #~~~~~~~~~~~~~~~~~~~~~
-                header.append('T0 Chopper Freq [Hz]')                
                 try:   
                     a = str(ds['entry1/instrument/t0_chopper_freq'])
                     if (len(a)>20):
-                        #print 't0_chopper_freq', ' multiple data, possibly ranscan'
+                        print 't0_chopper_freq', ' multiple data, possibly ranscan'
                         a = 'run scan'
                     else:
                         a = '%8.3f' %float(a)
                         #print 't0_chopper_freq', ' single entry', a                    
                 except:
-                    a = 'N/A'                    
-                    #print 'Choppers not in use'                
+                    a = 'Choppers not in use'
                 data.append(a)
+                header.append('T0 Chopper Freq [Hz]')          
 
             if T0ChopperPhase_tick.value:     #~~~~~~~~~~~~~~~~~~~~~
-                header.append('T0 Chopper Phase')                
                 try:   
                     a = str(ds['entry1/instrument/t0_chopper_phase'])
                     if (len(a)>20):
-                        a = 'run scan'                        
-                        #print 't0_chopper_phase', ' multiple data, possibly ranscan'
+                        print 't0_chopper_phase', ' multiple data, possibly ranscan'
+                        a = 'run scan'
                     else:
                         a = '%8.3f' %float(a)
                         #print 't0_chopper_phase', ' single entry', a                    
                 except:
-                    a = 'N/A'                    
-                    #print 'Choppers not in use'
-                data.append(a)                    
+                    a = 'Choppers not in use'
+                data.append(a)
+                header.append('T0 Chopper Phase')
             
             if velsel_lambda_tick.value:      #~~~~~~~~~~~~~~~~~~~~~
-                header.append('NVS wavelength')                
                 try:   
                     a = str(ds['entry1/instrument/nvs067/lambda'])
                     if (len(a)>20):
-                        a = 'run scan'                        
-                        #print 'lambda', ' multiple data, possibly ranscan'
+                        print 'lambda', ' multiple data, possibly ranscan'
+                        a = 'run scan'
                     else:
                         a = '%5.2f' %float(a)
                         #print 'lambda', ' single entry', a                    
                 except:
-                    a = 'N/A'                    
-                    #print 'Velocity selector not in use'
-                data.append(a)                    
+                    a = 'Velocity selector not in use'
+                data.append(a)
+                header.append('NVS wavelength')
                 
             if Temp_tc1_12Peltier_setpoint_tick.value: #~~~~~~~~~~~~~~~~~~~~~
-                header.append('Temp tc1 BBY1')
-                header.append('Temp tc1 BBY2')
-                header.append('Temp tc1 BBY3')
-                header.append('Temp tc1 BBY4')
-                header.append('Temp tc1 BBY5')
-                header.append('Temp tc1 BBY6')
-                header.append('Temp tc1 BBY7')
-                header.append('Temp tc1 BBY8')
-                header.append('Temp tc1 BBY9')
-                header.append('Temp tc1 BBY10')
-                header.append('Temp tc1 BBY11')
-                header.append('Temp tc1 BBY12')
                 try: 
                     data.append(str(ds['entry1/sample/tc1/loop_12/setpoint']))
                     data.append(str(ds['entry1/sample/tc1/loop_11/setpoint']))
@@ -452,25 +444,35 @@ def __run_script__(fns):
                     data.append(str(ds['entry1/sample/tc1/loop_03/setpoint']))
                     data.append(str(ds['entry1/sample/tc1/loop_02/setpoint']))
                     data.append(str(ds['entry1/sample/tc1/loop_01/setpoint']))
-                except:                
-                    for i in range (0, 12):
-                        a = 'N/Y'
-                        data.append(a)                    
+                except:
                     #print 'No temperature tc1 vSP data'
+                    data.append('no loop_12/setpoint')
+                    data.append('no loop_11/setpoint')
+                    data.append('no loop_10/setpoint')
+                    data.append('no loop_09/setpoint')
+                    data.append('no loop_08/setpoint')
+                    data.append('no loop_07/setpoint')
+                    data.append('no loop_06/setpoint')
+                    data.append('no loop_05/setpoint')
+                    data.append('no loop_04/setpoint')
+                    data.append('no loop_03/setpoint')
+                    data.append('no loop_02/setpoint')
+                    data.append('no loop_01/setpoint')
+                    
+                header.append('Temp tc1 BBY1')
+                header.append('Temp tc1 BBY2')
+                header.append('Temp tc1 BBY3')
+                header.append('Temp tc1 BBY4')
+                header.append('Temp tc1 BBY5')
+                header.append('Temp tc1 BBY6')
+                header.append('Temp tc1 BBY7')
+                header.append('Temp tc1 BBY8')
+                header.append('Temp tc1 BBY9')
+                header.append('Temp tc1 BBY10')
+                header.append('Temp tc1 BBY11')
+                header.append('Temp tc1 BBY12')
             
             if Temp_tc1_12Peltier_sensor_tick.value:   #~~~~~~~~~~~~~~~~~~~~~
-                header.append('Temp tc1 BBY1 sensor')
-                header.append('Temp tc1 BBY2 sensor')
-                header.append('Temp tc1 BBY3 sensor')
-                header.append('Temp tc1 BBY4 sensor')
-                header.append('Temp tc1 BBY5 sensor')
-                header.append('Temp tc1 BBY6 sensor')                
-                header.append('Temp tc1 BBY7 sensor')
-                header.append('Temp tc1 BBY8 sensor')
-                header.append('Temp tc1 BBY9 sensor')
-                header.append('Temp tc1 BBY10 sensor')
-                header.append('Temp tc1 BBY11 sensor')
-                header.append('Temp tc1 BBY12 sensor')                                                                                
                 try: 
                     data.append(str(ds['entry1/sample/tc1/loop_12/sensor']))
                     data.append(str(ds['entry1/sample/tc1/loop_11/sensor']))
@@ -485,155 +487,174 @@ def __run_script__(fns):
                     data.append(str(ds['entry1/sample/tc1/loop_02/sensor']))
                     data.append(str(ds['entry1/sample/tc1/loop_01/sensor']))
                 except:
-                    for i in range (0, 12):
-                        a = 'N/Y'
-                        data.append(a)
                     #print 'No temperature tc1 vSP data'
+                    data.append('no loop_12/sensor')
+                    data.append('no loop_11/sensor')
+                    data.append('no loop_10/sensor')
+                    data.append('no loop_09/sensor')
+                    data.append('no loop_08/sensor')
+                    data.append('no loop_07/sensor')
+                    data.append('no loop_06/sensor')
+                    data.append('no loop_05/sensor')
+                    data.append('no loop_04/sensor')
+                    data.append('no loop_03/sensor')
+                    data.append('no loop_02/sensor')
+                    data.append('no loop_01/sensor')
+ 
+                header.append('Temp tc1 BBY1 sensor')
+                header.append('Temp tc1 BBY2 sensor')
+                header.append('Temp tc1 BBY3 sensor')
+                header.append('Temp tc1 BBY4 sensor')
+                header.append('Temp tc1 BBY5 sensor')
+                header.append('Temp tc1 BBY6 sensor')
+                header.append('Temp tc1 BBY7 sensor')
+                header.append('Temp tc1 BBY8 sensor')
+                header.append('Temp tc1 BBY9 sensor')
+                header.append('Temp tc1 BBY10 sensor')
+                header.append('Temp tc1 BBY11 sensor')
+                header.append('Temp tc1 BBY12 sensor')
             
             if Temp_tc2_setpoint_tick.value:      #~~~~~~~~~~~~~~~~~~~~~ 
-                header.append('Temp tc2 vSP')                
                 try:  
                     a = str(ds['entry1/sample/tc2/Loop1/vSP'])
                     if (len(a)>20):
-                        #print 'vSP', ' multiple data, possibly ranscan'
+                        print 'vSP', ' multiple data, possibly ranscan'
                         a = 'run scan'
                     else:
                         a = '%5.2f' %float(a)
-                        #print 'vSP', ' single entry', a                    
+                        #print 'vSP', ' single entry', a
                 except:
-                    a = 'N/A'                    
-                    #print 'No temperature tc2 vSP'
+                    a = 'No tc2 vSP'
                 data.append(a)
-
+                header.append('Temp tc2 vSP')
+                    
             if Temp_tc2_VTE_tick.value:           #~~~~~~~~~~~~~~~~~~~~~
-                header.append('Temp tc2 vTE')
                 try:  
                     a = str(ds['entry1/sample/tc2/Loop1/vTE'])
                     if (len(a)>20):
-                        #print 'vTE', ' multiple data, possibly ranscan'
+                        print 'vTE', ' multiple data, possibly ranscan'
                         a = 'run scan'
                     else:
                         a = '%5.2f' %float(a)
-                        #print 'vTE', ' single entry', a                    
+                        #print 'vTE', ' single entry', a
                 except:
-                    a = 'N/A'                    
-                    #print 'No temperature tc2 vTE data'
+                    a = 'No tc2 vTE data'
                 data.append(a)
-
+                header.append('Temp tc2 vTE')
+                    
             if Temp_tc2_VTI_tick.value:           #~~~~~~~~~~~~~~~~~~~~~
-                header.append('Temp tc2 vTI')                
                 try:  
                     a = str(ds['entry1/sample/tc2/Loop1/vTI'])
                     if (len(a)>20):
-                        #print 'vTI', ' multiple data, possibly ranscan'
+                        print 'vTI', ' multiple data, possibly ranscan'
                         a = 'run scan'
                     else:
                         a = '%5.2f' %float(a)
-                        #print 'vTI', ' single entry', a                    
+                        #print 'vTI', ' single entry', a
                 except:
-                    a = 'N/A'                    
-                    #print 'No temperature tc2 vTI data'
+                    a = 'No tc2 vTI data'
                 data.append(a)
-
+                header.append('Temp tc2 vTI')
+                    
             if Temp_tc3_LakeshoreC_tick.value:    #~~~~~~~~~~~~~~~~~~~~~
-                header.append('Temp tc3 Lakeshore C')
                 try:  
                     a = float(ds['entry1/sample/tc3/sensor/sensorValueC'])
                     if (len(a)>20):
-                        #print 'Temp tc3 Lakeshore C', ' multiple data, possibly ranscan'
+                        print 'Temp tc3 Lakeshore C', ' multiple data, possibly ranscan'
                         a = 'run scan'
                     else:
                         a = '%5.2f' %float(a)
                         a = a - 273.15                        
-                        print 'Temp tc3 Lakeshore C', ' single entry', a                    
+                        #print 'Temp tc3 Lakeshore C', ' single entry', a
                 except:
-                    a = 'N/A'                    
-                    #print 'No temperature tc3 Lakeshore C'
+                    a = 'No tc3 Lakeshore C'
                 data.append(a)
-
+                header.append('Temp tc3 Lakeshore C')
+                    
             if Temp_tc3_LakeshoreD_tick.value:     #~~~~~~~~~~~~~~~~~~~~~
-                header.append('Temp tc3 Lakeshore D')                
                 try:  
                     a = float(ds['entry1/sample/tc3/sensor/sensorValueD'])
                     if (len(a)>20):
+                        print 'Temp tc3 Lakeshore D', ' multiple data, possibly ranscan'
                         a = 'run scan'
-                        #print 'Temp tc3 Lakeshore D', ' multiple data, possibly ranscan'
                     else:
                         a = '%5.2f' %float(a)
                         a = a - 273.15                        
-                        #print 'Temp tc3 Lakeshore D', ' single entry', a                    
+                        #print 'Temp tc3 Lakeshore D', ' single entry', a
                 except:
-                    a = 'N/A'
-                    #print 'No temperature tc3 Lakeshore D'     
+                    a = 'No tc3 Lakeshore D'
                 data.append(a)
+                header.append('Temp tc3 Lakeshore D')
+
 
             if Sample_temp_tick.value:             #~~~~~~~~~~~~~~~~~~~~~
-                header.append('SampleTemp')                 
                 try:   
                     a = str(ds['entry1/sample/tc1/sensor/sensorValueB'])
                     # Careful here, sensor A or B is defined solely by the experiment set-up
                     if (len(a)>20):
+                        print 'SampleTemp', ' multiple data, possibly ranscan'
                         a = 'run scan'
-                        #print 'SampleTemp', ' multiple data, possibly ranscan'
                     else:
                         a = '%5.2f' %float(a)
-                        #print 'SampleTemp', ' single entry', a                    
+                        #print 'SampleTemp', ' single entry', a
                 except:
-                    a = 'N/A'
-                    #print 'HM2 magnet: no value for sample T'
+                    a = 'HM2 magnet: no value for sample T'
                 data.append(a)
+                header.append('SampleTemp') 
+
 
             if Magnetic_field_tick.value:          #~~~~~~~~~~~~~~~~~~~~~
-                header.append('MagneticField')                
                 try:   
                     a = str(ds['entry1/sample/ma1/magnet/setpoint'])
                     # Careful here; this is settings for HM-2 magnet; HM-3 has a bit different node
                     if (len(a)>20):
+                        print 'MagneticField', ' multiple data, possibly ranscan'
                         a = 'run scan'
-                        #print 'MagneticField', ' multiple data, possibly ranscan'                        
                     else:
                         a = '%5.2f' %float(a)
                         #print 'MagneticField', ' single entry', a                    
                 except:
-                    a = 'N/A'                    
-                    #print 'HM2 magnet: no value for the filed'
+                    a = 'HM2 magnet: no value for the field'
                 data.append(a)
+                header.append('MagneticField')   # array
                   
             if Reactor_power_tick.value:            #~~~~~~~~~~~~~~~~~~~~~
-                header.append('ReactorPower')                
                 a = str(ds['entry1/instrument/source/power'])
                 if (len(a)>20):
+                    print 'ReactorPower', ' multiple data, possibly ranscan'
                     a = 'run scan'
-                    #print 'ReactorPower', ' multiple data, possibly ranscan'                    
                 else:
                    a = '%5.2f' %float(a)
                    #print 'ReactorPower', ' single entry', a
                 data.append(a)
+                header.append('ReactorPower')
                           
             if ColdSourceTemp_tick.value:          #~~~~~~~~~~~~~~~~~~~~~  
-                header.append('ColdSourceTemp')      
                 a = str(ds['entry1/instrument/source/cns_out'])
                 if (len(a)>20):
-                    a = 'run scan'                    
-                    #print 'ColdSourceTemp', 'multiple data, possibly ranscan'
+                    print 'ColdSourceTemp', 'multiple data, possibly ranscan'
+                    a = 'run scan'
                 else:
                     a = '%5.2f' %float(a)
                     #print 'ColdSourceTemp', 'single entry', a                
                 data.append(a)
+                header.append('ColdSourceTemp')      
 
 # Recording header
-            if if_header_recorded == False:
+            f = open(__FOLDER_PATH__ + str(exportfilename.value) + '.csv', 'a+')        
+            if i == 0:
                 for h in range(len(header)):                  
                     f.write(header[h])
                     f.write(',') 
                 f.write('\n')
-                if_header_recorded = True
-
+                #print 'header', header
+            i = 1
             for h in range(len(data)):           
                 f.write(data[h])
                 f.write(',')
             f.write('\n')
-        f.close()
+            #print 'data', data
+            f.close()
 # File shall be closed by now, but for some reason sometimes system keeps it open
         
         print 'finished output ' + f.name               
@@ -645,23 +666,3 @@ def __dispose__():
     #Plot1.clear()
     #Plot2.clear()
     #Plot3.clear()
-
-'''
-# not used yet:
-def MeasurementTime(self):   
-
-        TotalTime = self.TimeStamp[-1] + self.CountTimes[0] # first point is detector time for the first point
-        h      = TotalTime // 3600
-        h      = TotalTime // 3600
-        h_left = TotalTime % 3600
-        min    = h_left // 60
-        sec    = h_left % 60        
-        self.TotalTime_form = "%02i:%02i:%02i" % (h, min, sec)
-
-        print 'Total Run Time: ' + self.TotalTime_form + ' [h:min:sec]'          
-        print ''
-
-        for i in xrange(len(self.TimeStamp)-1):
-            self.ActualTime[i+1] = self.TimeStamp[i+1]-self.TimeStamp[i]   
-
-'''
