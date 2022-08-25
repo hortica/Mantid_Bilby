@@ -563,8 +563,7 @@ def __run_script__(fns):
                         print 'Temp tc3 Lakeshore C', ' multiple data, possibly ranscan'
                         a = 'run scan'
                     else:
-                        a = '%5.2f' %float(a)
-                        a = a - 273.15                        
+                        a = '%5.2f' %(float(a) - 273.15)                
                         #print 'Temp tc3 Lakeshore C', ' single entry', a
                 except:
                     a = 'No tc3 Lakeshore C'
@@ -578,8 +577,7 @@ def __run_script__(fns):
                         print 'Temp tc3 Lakeshore D', ' multiple data, possibly ranscan'
                         a = 'run scan'
                     else:
-                        a = '%5.2f' %float(a)
-                        a = a - 273.15                        
+                        a = '%5.2f' %(float(a) - 273.15) 
                         #print 'Temp tc3 Lakeshore D', ' single entry', a
                 except:
                     a = 'No tc3 Lakeshore D'
