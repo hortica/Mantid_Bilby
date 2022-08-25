@@ -13,29 +13,30 @@ import matplotlib.pylab as plt
 from mantid.kernel import Logger
 
 import BilbyCustomFunctions_Reduction
-
 ansto_logger = Logger('AnstoDataReduction')
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # INPUT - mandatory from a USER - START
 ###########################################################################################
-red_settings = FileFinder.getFullPath('mantid_reduction_settings_example.csv')
+red_settings = FileFinder.getFullPath('settings_august2022.csv')
 
 # INPUT - index of a line with reduction parameters
-index_reduction_settings = ['2'] # INDEX OF THE LINE WITH REDUCTION SETTINGS
+index_reduction_settings = ['0'] # INDEX OF THE LINE WITH REDUCTION SETTINGS
     
 if len(index_reduction_settings) > 1: # must be single choice
     raise ValueError('Please check your choice of reduction settigns; only single value is allowed')
 
 # ID to evaluate - INPUT, in any combination of 'a-b' or ',c', or empty line; empty line means evaluate all files listed in csv
-index_files_to_reduce = '0,1'  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
 
-# Data file with numbers
+index_files_to_reduce = '1'  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
+
+#Data file with numbers
 path_tube_shift_correction = FileFinder.getFullPath('shift_assembled.csv')
 
 ###########################################################################################
 # INPUT - mandatory from a USER - END
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
 ###########################################################################################
 # settings - what to do - applied for all loaded files - not to be changed by a user
 
@@ -51,15 +52,15 @@ if wide_angle_correction is True:
     print ('WARNING: wide_angle_correction is set to', wide_angle_correction, 'which will lead to the wrong calculations of error bars.')
     print ('WARNING: highly recommended to change the wide_angle_correction value to FALSE.')
 
-######################################
-######################################
+###########################################################################################
+###########################################################################################
 # Reading parameters from the reduction settings file
 reduction_settings_list = BilbyCustomFunctions_Reduction.files_list_reduce(red_settings) # read entire file
 current_reduction_settings = BilbyCustomFunctions_Reduction.files_to_reduce(reduction_settings_list, index_reduction_settings[0]) # take only one line, # index_reduction_settings
-
 # Read input csv file and define / create a folder for the output data
 
 csv_files_to_reduce_list = FileFinder.getFullPath(current_reduction_settings[0]['csv_file_name'])
+
 reduced_files_path_folder = os.path.dirname(csv_files_to_reduce_list)
 
 reduced_files_path = reduced_files_path_folder + '\\' + current_reduction_settings[0]['reduced_files_folder'] # construct a path to a folder for reduced files 
@@ -128,10 +129,12 @@ if reduce_2D:
     plot_2D = BilbyCustomFunctions_Reduction.string_boolean(plot_2D)
     binning_q[1] = (binning_q[2] - binning_q[0]) / number_data_points_2D # To replace deltaQ from the input file
 
-######################################
+###########################################################################################
  # Calling function to read given csv file
 parameters = BilbyCustomFunctions_Reduction.files_list_reduce(csv_files_to_reduce_list)
+
 files_to_reduce = BilbyCustomFunctions_Reduction.files_to_reduce(parameters, index_files_to_reduce)
+
 if len(files_to_reduce) == 0:
     raise ValueError('Please check index_files_to_reduce; chosen one does not exist')
 
@@ -142,7 +145,7 @@ for current_file in files_to_reduce:
     EndTime = current_file['EndTime']
 #Errors: if trying to reduce time slice larger than the total time of the measurement:
 #Errors: if trying to reduce time slice larger than the total time of the measurement:
-#Error message & Stop - to add
+#Error message & Stop - to addBBY0050276_6.0_empty_cell_long
 
     if ((not StartTime) and (EndTime)) or ((StartTime) and (not EndTime)):
         raise ValueError('Check StartTime and EndTime values; either both or none shall be intered.')
@@ -160,7 +163,7 @@ for current_file in files_to_reduce:
         ws_sam = LoadBBY(sam_file, FilterByTimeStart = StartTime, FilterByTimeStop = EndTime)    # now to load file within requested time slice if values are feasible
         time_range = '_' + StartTime + '_' + EndTime
 
-    # To read the mode value: True - ToF; False - NVS; this will define some steps inside SANSDataProcessor
+    # To read the mode value: True - ToBBY0050431_2.0_20.0_CS_60C_30B_2MLF; False - NVS; this will define some steps inside SANSDataProcessor
     try:
         external_mode = (ws_sam.run().getProperty('is_tof').value)
     except:
@@ -194,14 +197,14 @@ for current_file in files_to_reduce:
     ws_tranEmp = LoadBBY(ws_emp_file) # empty beam for transmission
     transm_mask = current_file['mask_transmission']+'.xml'
     ws_tranMsk = LoadMask('Bilby', transm_mask)
-    sam_mask_file = current_file['mask']+'.xml'
-    ws_samMsk = LoadMask('Bilby', sam_mask_file)
-
+    #sam_mask_file = current_file['mask']+'.xml'
+    #ws_samMsk = LoadMask('Bilby', sam_mask_file)    
+    
     # scaling: attenuation
     att_pos = float(ws_tranSam.run().getProperty('att_pos').value)
 
     scale = BilbyCustomFunctions_Reduction.attenuation_correction(att_pos, data_before_May_2016)
-    print ('scale, aka attenuation factor'), scale
+    print ('scale, aka attenuation factor', scale)
 
     thickness = current_file['thickness [cm]']
 
@@ -232,7 +235,7 @@ for current_file in files_to_reduce:
     # wavelenth intervals: building  binning_wavelength list 
     binning_wavelength, n = BilbyCustomFunctions_Reduction.wavelengh_slices(wavelength_intervals, binning_wavelength_ini, wav_delta)
 
-###############################################################
+###########################################################################################
 # By now we know how many wavelengths bins we have, so shall run Q1D n times
     # -- Processing --
     suffix = current_file['suffix'].strip()
@@ -249,21 +252,62 @@ for current_file in files_to_reduce:
     data_1D.set_xlabel('q ($\\AA^{-1}$)'), data_1D.set_ylabel('1/cm')
 # End plot formatting section
 
-    for i in range (n):
-        ws_emp_partial = Rebin('ws_emp', Params=binning_wavelength[i])
-        ws_emp_partial = SumSpectra(ws_emp_partial, IncludeMonitors=False)           
+###########################################################################################
+### masking circle
 
-        if reduce_2D:
-           base_output_name = sam_file[0:10]+'_2D_'+ str(round(binning_wavelength[i][0], 1)) +'_'+ str(round(binning_wavelength[i][2],1)) + time_range + suffix  #A core of output name; made from the name of the input sample        
-        else:
-            if external_mode:
-               base_output_name = sam_file[0:10]+'_'+ str(round(binning_wavelength[i][0], 1)) +'_'+ str(round(binning_wavelength[i][2],1)) + time_range + suffix  #A core of output name; made from the name of the input sample            
+    ws_sam_ini = CloneWorkspace(ws_sam) # To be sure masking is not going in circles
+    sam_mask_file = current_file['mask']+'.xml' # load mask from the original input file
+    ws_samMsk = LoadMask('Bilby', sam_mask_file) 
+    
+    standard_mask = current_reduction_settings[0]['standard_mask'] # read if do complex masking
+    index_mask = 0
+    suffix_ini = suffix
+
+    if int(standard_mask) != 1 and int(standard_mask) != 4 and int(standard_mask) != 6:
+        standard_mask = 1
+        print ('==============================================================================')
+        print ('Warning!!! The input for extra masking is wrong, only the main mask is applied')
+        print ('==============================================================================')
+        
+    if int(standard_mask) != 1: # if extra masking needed
+        masks_array = [] 
+        name_array = []
+        if int(standard_mask) == 4:
+            masks_array = ['mask_scattering_l_d.xml', 'mask_scattering_l_u.xml', 'mask_scattering_r_d.xml', 'mask_scattering_r_u.xml']
+            name_array = ['l_down', 'l_up', 'r_down', 'r_up']
+        if int(standard_mask) == 6:
+            masks_array = ['mask_scattering_r_left.xml', 'mask_scattering_r_right.xml', 'mask_scattering_top.xml', 'mask_scattering_bottom.xml', 'mask_scattering_left.xml', 'mask_scattering_right.xml']
+            name_array = ['r_left', 'r_right', 'top', 'bottom', 'left', 'right']            
+    else:
+        masks_array = [sam_mask_file]
+        
+    for mask in masks_array:
+        if int(standard_mask) != 1:
+            ws_sam = CloneWorkspace(ws_sam_ini) # To be sure masking is not going in circles
+            ws_samMsk_extra = LoadMask('Bilby', mask)       
+            MaskDetectors('ws_sam', MaskedWorkspace = ws_samMsk_extra)
+            suffix = suffix_ini + '_' + name_array[index_mask] # Adding extra to the file name
+            index_mask += 1
+
+###########################################################################################
+### Wavelength slices
+
+        for i in range (n):
+            ws_emp_partial = Rebin('ws_emp', Params=binning_wavelength[i])
+            ws_emp_partial = SumSpectra(ws_emp_partial, IncludeMonitors=False)           
+
+            if reduce_2D:
+               base_output_name = sam_file[0:10]+'_2D_'+ str(round(binning_wavelength[i][0], 1)) +'_'+ str(round(binning_wavelength[i][2],1)) + time_range + suffix  #A core of output name; made from the name of the input sample        
             else:
-               base_output_name = sam_file[0:10] + '_' + str(mean_wavelength) + time_range + suffix  #A core of output name; made from the name of the input sample             
+                if external_mode:
+                   base_output_name = sam_file[0:10]+'_'+ str(round(binning_wavelength[i][0], 1)) +'_'+ str(round(binning_wavelength[i][2],1)) + time_range + suffix  #A core of output name; made from the name of the input sample            
+                else:
+                   #base_output_name = sam_file[0:10] + '_' + str(mean_wavelength) + time_range + suffix  #A core of output name; made from the name of the input sample             
+                   base_output_name = sam_file[0:10] + time_range + suffix  #A core of output name; made from the name of the input sample                            
 
-        transmission_fit = transmission_fit_ini # needed here, otherwise SANSDataProcessor replaced it with 'transmission_fit' string
+            transmission_fit = transmission_fit_ini # needed here, otherwise SANSDataProcessor replaced it with 'transmission_fit' string
 
-        output_workspace, transmission_fit = BilbySANSDataProcessor(InputWorkspace=ws_sam, InputMaskingWorkspace=ws_samMsk,
+            output_workspace, transmission_fit = BilbySANSDataProcessor(InputWorkspace=ws_sam, InputMaskingWorkspace=ws_samMsk,
                                   BlockedBeamWorkspace=ws_blk, EmptyBeamSpectrumShapeWorkspace=ws_emp_partial, SensitivityCorrectionMatrix=ws_sen,
                                   TransmissionWorkspace=ws_tranSam, TransmissionEmptyBeamWorkspace=ws_tranEmp, TransmissionMaskingWorkspace=ws_tranMsk,
                                   ScalingFactor=scale, SampleThickness=thickness,
@@ -276,71 +320,72 @@ for current_file in files_to_reduce:
                                   OutputWorkspace = base_output_name)
         #print mtd.getObjectNames()
         #print transmission_fit.getHistory()
+            out = CloneWorkspace(output_workspace)
 
-### ================================================================================
+###########################################################################################
 ### Data ploting and saving
-        if reduce_2D:        
-            fig, data_2D = plt.subplots(subplot_kw={'projection': 'mantid'})
-            from mantid.api import AnalysisDataService as ADS
-            data_to_plot = ADS.retrieve(base_output_name)            
+            if reduce_2D:        
+                fig, data_2D = plt.subplots(subplot_kw={'projection': 'mantid'})
+                from mantid.api import AnalysisDataService as ADS
+                data_to_plot = ADS.retrieve(base_output_name)            
   
-            c = data_2D.pcolormesh(data_to_plot)
-            data_2D.set_title(base_output_name)
-            fig.colorbar(c) # shows the color bar
-            fig.set_label('Intensity (1/cm)"')
+                c = data_2D.pcolormesh(data_to_plot)
+                data_2D.set_title(base_output_name)
+                fig.colorbar(c) # shows the color bar
+                fig.set_label('Intensity (1/cm)"')
 
             # Saving plots
-            n_2D_png = output_workspace.name() + '.png'
-            n_2D_png_path = os.path.join(os.path.expanduser(reduced_files_path), n_2D_png)
-            fig.savefig(n_2D_png_path)
-            n_2D_pdf = output_workspace.name() + '.pdf'
-            n_2D_pdf_path = os.path.join(os.path.expanduser(reduced_files_path), n_2D_pdf)
-            fig.savefig(n_2D_pdf_path)
+                n_2D_png = output_workspace.name() + '.png'
+                n_2D_png_path = os.path.join(os.path.expanduser(reduced_files_path), n_2D_png)
+                fig.savefig(n_2D_png_path)
+                n_2D_pdf = output_workspace.name() + '.pdf'
+                n_2D_pdf_path = os.path.join(os.path.expanduser(reduced_files_path), n_2D_pdf)
+                fig.savefig(n_2D_pdf_path)
      
-            if (plot_2D): fig.show()
+                if (plot_2D): fig.show()
             
             # 2D data saving in two formats
-            SaveNxs = os.path.join(os.path.expanduser(reduced_files_path), output_workspace.name() + '.nxs')
-            SaveNISTDAT(output_workspace.name(), SaveNxs)
-            print ('2D nxs file exists: ', os.path.exists(SaveNxs))
-            SaveH5 = os.path.join(os.path.expanduser(reduced_files_path), output_workspace.name() + '.h5')
-            SaveNXcanSAS(output_workspace.name(), SaveH5)
-            print ('2D h5 file exists: ', os.path.exists(SaveH5))
+                SaveNxs = os.path.join(os.path.expanduser(reduced_files_path), output_workspace.name() + '.nxs')
+                SaveNISTDAT(output_workspace.name(), SaveNxs)
+                print ('2D nxs file exists: ', os.path.exists(SaveNxs))
+                SaveH5 = os.path.join(os.path.expanduser(reduced_files_path), output_workspace.name() + '.h5')
+                SaveNXcanSAS(output_workspace.name(), SaveH5)
+                print ('2D h5 file exists: ', os.path.exists(SaveH5))
             
-        else: # 1D reduction          
-            from mantid.api import AnalysisDataService as ADS
-            data_to_plot = ADS.retrieve(base_output_name)
-            data_1D.errorbar(data_to_plot, label = data_to_plot)
-            plt.legend()
-            try:
-               fig.show()
-            except: # Mitigating the case when the plot is closed during creation; it is not good to close the plot before all wavelenght slices are complete.
-               fig, data_1D = plt.subplots(subplot_kw={'projection': 'mantid'})
-               data_1D.errorbar(data_to_plot, label = data_to_plot) # The first plot will be done on default settings, which is not pretty but clear to show that something went wrong
-               data_1D.set_xscale('log'), data_1D.set_yscale('log')
-               fig.show()
+            else: # 1D reduction          
+                from mantid.api import AnalysisDataService as ADS
+                data_to_plot = ADS.retrieve(base_output_name)
+                data_1D.errorbar(data_to_plot, label = data_to_plot)
+                plt.legend()
+                try:
+                   fig.show()
+                except: # Mitigating the case when the plot is closed during creation; it is not good to close the plot before all wavelenght slices are complete.
+                   fig, data_1D = plt.subplots(subplot_kw={'projection': 'mantid'})
+                   data_1D.errorbar(data_to_plot, label = data_to_plot) # The first plot will be done on default settings, which is not pretty but clear to show that something went wrong
+                   data_1D.set_xscale('log'), data_1D.set_yscale('log')
+                   fig.show()
                
             # 1D file saving
-            BilbyCustomFunctions_Reduction.strip_NaNs(output_workspace, base_output_name)               
-            n_1D = base_output_name +'.dat'       # 1D output file; name based on 'base_output_name' construct
-            savefile = os.path.join(os.path.expanduser(reduced_files_path), n_1D)          # setting up full path
+                BilbyCustomFunctions_Reduction.strip_NaNs(output_workspace, base_output_name)               
+                n_1D = base_output_name +'.dat'       # 1D output file; name based on 'base_output_name' construct
+                savefile = os.path.join(os.path.expanduser(reduced_files_path), n_1D)          # setting up full path
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 #something new 26 March 2019
             #add parameters into the file header
-            header = BilbyCustomFunctions_Reduction.output_header(external_mode, binning_wavelength[i], ws_sam, thickness, transm_file, ws_emp_file, ws_blocked_beam, sam_mask_file, transm_mask)
+                header = BilbyCustomFunctions_Reduction.output_header(external_mode, binning_wavelength[i], ws_sam, thickness, transm_file, ws_emp_file, ws_blocked_beam, sam_mask_file, transm_mask)
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-            f = open(savefile, 'w') # open file re-wring existing one
-            for line in header: # write the rest of the header in the file      
-               with open(savefile, 'a') as f_out:
-                  f_out.write(line+'\n')
-            f.close()                
+                f = open(savefile, 'w') # open file re-wring existing one
+                for line in header: # write the rest of the header in the file      
+                   with open(savefile, 'a') as f_out:
+                      f_out.write(line+'\n')
+                f.close()                
            #to sort out the list & define what is in for ToF
 
-            SaveAscii(InputWorkspace = base_output_name, Filename = savefile, WriteXError = True, WriteSpectrumID = False, Separator = 'CSV', AppendToFile = True) #saving file
-            print (savefile)
-            print ('1D File Exists:' , os.path.exists(savefile))
+                SaveAscii(InputWorkspace = base_output_name, Filename = savefile, WriteXError = True, WriteSpectrumID = False, Separator = 'CSV', AppendToFile = True) #saving file
+                print (savefile)
+                print ('1D File Exists:' , os.path.exists(savefile))
 
-### ================================================================================
+###########################################################################################
 # - add subtraction of the background -- later
