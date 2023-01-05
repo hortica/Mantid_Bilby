@@ -1,3 +1,6 @@
+# import mantid algorithms
+from mantid.simpleapi import *
+
 # 26 February 2016
 # 4 April 2017
 import math
@@ -58,17 +61,17 @@ def ratio_calculation(n, ws1, ws2,  ws_samMsk, ws_tranMsk, scale):
 ############################################
 # USER input files and parameters ===========================================
 
-csv_file_name = FileFinder.getFullPath('input_csv_5789.csv')
+csv_file_name = FileFinder.getFullPath('input_14220.csv')
 
-index_files_to_reduce = '7,12,11'  # as per csv_files_to_reduce_list file
+index_files_to_reduce = '16-27, 39, 40, 53-62, 78-91'  # as per csv_files_to_reduce_list file
 
 # wavelength settings
 wav1 = 2.0                         # min wavelength in total range
-wav2 = 18.0                       # max wavelength in total range
+wav2 = 20.0                       # max wavelength in total range
 wav_delta = 1.0                 # wavelength step
 
 #If subtract BlockedBeam
-BlockedBeam_subtract = False # False
+BlockedBeam_subtract = True # False
 
 # END of USER input section ===============================================
 ############################################
@@ -77,7 +80,7 @@ if not os.path.exists(csv_file_name):
     print ('Input csv list is not found')
     sys.exit()
     
-csv_file_output = csv_file_name[0:(len(csv_file_name)-4)] + '_mult.csv' ## check how to name without extension + think about name! 
+csv_file_output = csv_file_name[0:(len(csv_file_name)-4)] + '_mult_withBB.csv' ## check how to name without extension + think about name! 
 
 ############################################
 # Create output file, if does not exist
@@ -91,8 +94,8 @@ if not os.path.exists(filename):     # check if it does exist; create if not
 ############################################
  # Calling function to read given csv file   
 
-parameters = BilbyCustomFunctions_Reduction.FilesListReduce(csv_file_name)
-files_to_reduce = BilbyCustomFunctions_Reduction.FilesToReduce(parameters, index_files_to_reduce)
+parameters = BilbyCustomFunctions_Reduction.files_list_reduce(csv_file_name)
+files_to_reduce = BilbyCustomFunctions_Reduction.files_to_reduce(parameters, index_files_to_reduce)
 
 ############################################
 # Check of input wavelength range
@@ -120,22 +123,23 @@ for current_file in files_to_reduce:
     ws_tranMsk_name = current_file['mask_transmission_estimate_multiple']+'.xml'
     ws_tranMsk = LoadMask('Bilby', ws_tranMsk)                     # loading tranmission mask
     ws_samMsk = InvertMask(InputWorkspace=ws_tranMsk)       # create scattering mask as an inverted one to transmission    
-    suffix = current_file['suffix']                                                # suffix to record in output file
-                                                              
+    suffix = current_file['suffix'] + '_' + current_file['additional_description']                                                 # suffix to record in output file
+
 # load files and convert units ===========================================
     
     ws_input_sample_transm = LoadBBY(file_name)
-    ws_wave_sample_transm=ConvertUnits(ws_input_sample_transm, 'Wavelength')
-
-    ws_input_blocked = LoadBBY(blocked_beam_name)
-    ws_wave_blocked=ConvertUnits(ws_input_blocked, 'Wavelength')
-
-# rebin of initial workspace  ===========================================
+    ws_wave_sample_transm = ConvertUnits(ws_input_sample_transm, 'Wavelength')
 
     wave_range=str(wav1)+','+str(wav_delta)+','+str(wav2)
 
+    if BlockedBeam_subtract:
+       ws_input_blocked = LoadBBY(blocked_beam_name)
+       ws_wave_blocked=ConvertUnits(ws_input_blocked, 'Wavelength')
+       ws_wave_blocked = Rebin(ws_wave_blocked, Params = wave_range, PreserveEvents = False)
+   
+# rebin of initial workspace  ===========================================
+
     ws_wave_sample_transm = Rebin(ws_wave_sample_transm, Params = wave_range, PreserveEvents = False)  # interesting how Rebin works if the reminder from the division is greater than 0 ???
-    ws_wave_blocked = Rebin(ws_wave_blocked, Params = wave_range, PreserveEvents = False)
 
 ############################################
     
@@ -153,6 +157,7 @@ for current_file in files_to_reduce:
         # no need to scale
         scale_transm_blocked = 1.0
     else:
+        print (suffix, 'sample transmission', file_name)
         # length of measurements - scaling
         scale_transm_blocked = float(ws_wave_sample_transm.run().getProperty('frame_count').value) / float(ws_wave_blocked.run().getProperty('frame_count').value)
         # array of input names
@@ -178,7 +183,7 @@ for current_file in files_to_reduce:
 
         analysed_data_wav = [ws1.readX(0)[j], ws1.readX(0)[j+1], '%4.3f' % ratio_values_sample_minus_blocked[j], note]
         print (analysed_data_wav)
-        with open(filename, 'ab') as f_out:
+        with open(filename, 'a') as f_out:
             wr = csv.writer(f_out, delimiter=',', lineterminator='\n')
             wr.writerow(analysed_data_wav)
-LoadDialog()
+#LoadDialog()

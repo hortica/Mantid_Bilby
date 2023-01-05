@@ -16,9 +16,8 @@ import BilbyCustomFunctions_Reduction
 ansto_logger = Logger('AnstoDataReduction')
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-# INPUT - mandatory from a USER - START
-###########################################################################################
-red_settings = FileFinder.getFullPath('settings_august2022.csv')
+# INPUT - mandatory from a USER - START##############################################
+red_settings = FileFinder.getFullPath('mantid_reduction_settings_example.csv')
 
 # INPUT - index of a line with reduction parameters
 index_reduction_settings = ['0'] # INDEX OF THE LINE WITH REDUCTION SETTINGS
@@ -28,7 +27,7 @@ if len(index_reduction_settings) > 1: # must be single choice
 
 # ID to evaluate - INPUT, in any combination of 'a-b' or ',c', or empty line; empty line means evaluate all files listed in csv
 
-index_files_to_reduce = '1'  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
+index_files_to_reduce = '0'  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
 
 #Data file with numbers
 path_tube_shift_correction = FileFinder.getFullPath('shift_assembled.csv')

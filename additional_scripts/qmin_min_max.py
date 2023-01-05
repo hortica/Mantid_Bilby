@@ -34,7 +34,7 @@ def curtain_q(idc, n, dx, separation, L2_curtain):
 #INPUT 
 # wavelengths =================================================================================
 
-wl_range = [2.0, 10.0]                # wavelength, Angstroms  
+wl_range = [5.3, 5.7]                # wavelength, Angstroms  
 
 assymetry_expected_horizontal_only = False # Added to be sure that no gaps are appearing on the data when half of the curtains are masked off
 assymetry_expected_vertical_only = False    # Added to be sure that no gaps are appearing on the data when half of the curtains are masked off
@@ -44,10 +44,10 @@ Bragg_edge_suspected = False                      # Added to be sure that no sho
 
 source_aper = 40.00                    # source aperture diameter, in mm
 sample_aper = 12.5                    #sample aperture diameter, in mm
-L1 = 14764.0                                 # L1, source - sample distance, in mm
+L1 = 16764.0                                 # L1, source - sample distance, in mm
 
 bs = 40.0                                   # beamstop radius, in mm
-L2_det = 18000.1                    # sample - rear detector distance, in mm
+L2_det = 16000.0                    # sample - rear detector distance, in mm
 
 #Curtains up & down
 L2_curtain_ud = 3500                 # sample - curtain distance, in mm, assumed the same for top & bottom

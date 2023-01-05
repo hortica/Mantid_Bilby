@@ -86,6 +86,8 @@ for current_file in files_to_subtract:
                 binning_q = round((-1)*np.log((ws_bcgd_ini.readX(0)[1]/ws_bcgd_ini.readX(0)[0])),3)
                 print ("log q binning", binning_q)
             binning = [new_left, binning_q, new_right]
+            if (binning_q == 0):
+                print ('Binning is too rough, so binning_q worked out to be 0; the script will not be able to rebin hence will ignore the background in this case.')
             ws_sample_const_sub = Rebin(ws_sample_const_sub, binning);
             ws_bcgd_scaled = Rebin(ws_bcgd_scaled, binning);            
             number_of_bins_sample = ws_sample_const_sub.blocksize()
