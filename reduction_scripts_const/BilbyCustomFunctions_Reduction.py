@@ -11,9 +11,6 @@ from itertools import product
 import sys
 from mantid.simpleapi import MoveInstrumentComponent, CropWorkspace
 
-# values for att_pos 2 and 4 shall not make sense; those attenuators have not been in use that time
-attenuation_correction_pre_2016 = {1.0: 0.007655, 2.0: -1.0, 3.0: 1.0, 4.0: -1.0, 5.0: 0.005886}
-attenuation_correction_post_2016 = {1.0: 1.0, 2.0: 0.00955, 3.0: 0.005886, 4.0: 0.00290, 5.0: 0.00062}
 
 ##############################################################################
 
@@ -229,20 +226,39 @@ def read_csv(filename):
 ##############################################################################
 
 
-def attenuation_correction(att_pos, data_before_May_2016):
-    """ Bilby has four attenuators; before May 2016 there were only two.
-     Value of the attenuators are hard coded here and being used for the I(Q) scaling in Q1D """
+# values for att_pos 2 and 4 shall not make sense; those attenuators have not been in use that time
+attenuation_correction_pre_2016 = {1.0: 0.007655, 2.0: -1.0, 3.0: 1.0, 4.0: -1.0, 5.0: 0.005886}
+# the following values are not applicable anymore
+attenuation_correction_post_2016 = {1.0: 1.0, 2.0: 0.00955, 3.0: 0.005886, 4.0: 0.00290, 5.0: 0.00062}
 
-    if (data_before_May_2016):
+# 2023: re-callibrated attenuators, discovering solid dependence of values on nguide for Att3, Att4 and Att5
+attenuation_correction_post_2016_2023 = {
+    1.0: 1.0,
+    2.0: 1.0/98.0,
+    3.0: [1.0/145.0, 1.0/155.5911, 1.0/162.0, 1.0/170.060, 1.0/162.710, 1.0/162.0, 1.0/170.948], # ng0, ng1 etc to ng6
+    4.0: [1/332.0, 1/367.01123, 1/344.82358, 1/353.87057, 1/349.56213, 1/332.90527, 1.0/320.0],    
+    5.0: [1/2567.179, 1/3119.415457, 1/2644.747066, 1/2524.356, 1/2650.7021, 1/2281.926072, 1/2122.0]    
+    }
+
+def attenuation_correction(att_pos, nguide_empty_beam, data_before_May_2016): # Updated in June 2023, added dependence on nguide
+    """Bilby has four attenuators; before May 2016 there were only two.
+    Value of the attenuators are hard coded here and being used for the I(Q) scaling in Q1D"""
+
+    if data_before_May_2016:
         print("You stated data have been collected before May, 2016, i.e. using old attenuators. Please double check.")
-        if (att_pos == 2.0 or att_pos == 4.0):
-            print(
-                "Wrong attenuators value; Either data have been collected after May, 2016, or something is wrong with hdf file")
+        if att_pos == 2.0 or att_pos == 4.0:
+            print("Wrong attenuators value; Either data have been collected after May, 2016, or something is wrong with hdf file")
             sys.exit()
         scale = attenuation_correction_pre_2016[att_pos]
     else:
-        scale = attenuation_correction_post_2016[att_pos]
+        if att_pos == 1.0 or att_pos == 2.0:
+            print ('I am new, att 2 ', attenuation_correction_post_2016_2023[att_pos])
+            scale = attenuation_correction_post_2016_2023[att_pos]            
+        else:
+            print ('I am new, att > 2 ', attenuation_correction_post_2016_2023[att_pos][int(nguide_empty_beam)])        
+            scale = attenuation_correction_post_2016_2023[att_pos][int(nguide_empty_beam)]
     return scale
+
 
 ##############################################################################
 

@@ -196,14 +196,28 @@ for current_file in files_to_reduce:
     ws_tranEmp = LoadBBY(ws_emp_file) # empty beam for transmission
     transm_mask = current_file['mask_transmission']+'.xml'
     ws_tranMsk = LoadMask('Bilby', transm_mask)
-    #sam_mask_file = current_file['mask']+'.xml'
-    #ws_samMsk = LoadMask('Bilby', sam_mask_file)    
+
+    # Moving detectors manually, to be sure beam quoters & six panels overlaps matches
+    
+    #move_rearl =    [ -3.5,  2.0, 0.0] # in mm
+    #move_rearr =    [ -3.5,  2.0, 0.0] # in mm
+
+    #MoveInstrumentComponent(ws_sam, "BackDetectorLeft",       X=move_rearl[0]/1000,          Y=move_rearl[1]/1000,        Z=move_rearl[2]/1000) 
+    #MoveInstrumentComponent(ws_sam, "BackDetectorRight",      X=move_rearr[0]/1000,          Y=move_rearr[1]/1000,        Z=move_rearr[2]/1000) 
+
+    #MoveInstrumentComponent(ws_sam, 'CurtainLeft',          X= -7.2/1000,    Y=  3.7/1000,     Z=  36.5/1000)
+    #MoveInstrumentComponent(ws_sam, 'CurtainRight',         X=  4.9/1000,    Y=  4.4/1000,     Z=  41.1/1000)
+    #MoveInstrumentComponent(ws_sam, 'CurtainTop',           X= -2.7/1000,    Y= -2.1/1000,     Z=  34.6/1000)
+    #MoveInstrumentComponent(ws_sam, 'CurtainBottom',        X= -3.8/1000,    Y=  8.6/1000,     Z=  32.3/1000)
+    #MoveInstrumentComponent(ws_sam, 'BackDetectorRight',    X= -2.0/1000,    Y=  0.0/1000,     Z=  45.8/1000) 
+    #MoveInstrumentComponent(ws_sam, 'BackDetectorLeft',     X= -2.0/1000,    Y=  0.0/1000,     Z=  45.8/1000)
     
     # scaling: attenuation
     att_pos = float(ws_tranSam.run().getProperty('att_pos').value)
-
-    scale = BilbyCustomFunctions_Reduction.attenuation_correction(att_pos, data_before_May_2016)
-    print ('scale, aka attenuation factor', scale)
+    nguide_empty_beam = float(ws_tranEmp.run().getProperty('nguide').value)
+    
+    scale = BilbyCustomFunctions_Reduction.attenuation_correction(att_pos, nguide_empty_beam, data_before_May_2016)
+    print ('scale, aka attenuation factor', scale) 
 
     thickness = current_file['thickness [cm]']
 
