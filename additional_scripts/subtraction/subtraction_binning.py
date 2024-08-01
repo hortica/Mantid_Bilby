@@ -12,8 +12,8 @@ import BilbyCustomFunctions_Reduction
 # NOTE output files will be created in the same folder where "subtraction_list" sits
 # Folder containing "subtraction_list" file must be on Mantid path, set in  "File-> Manage User Directories"
 # IF subtracted data file exists, it will be re-written
-subtraction_list = FileFinder.getFullPath('list_subtr.csv') # main list of files to be scaled and subtracted; folder must be on Mantid path
-index_files_to_subtract = ''                                                       # index(es) of pair to subtract
+subtraction_list = FileFinder.getFullPath('list_7259_BP85_TR_symm_subtract_aug.csv') # main list of files to be scaled and subtracted; folder must be on Mantid path
+index_files_to_subtract = '10'                                                       # index(es) of pair to subtract
 
 # USER input end
 
@@ -123,7 +123,8 @@ for current_file in files_to_subtract:
         header_line.append(['Background file name: ' + background_file])
         header_line.append(['Background multiplier = ' + str(scale_mult)])
     else:
-        header_line.append(['No background file given; only const subtracted'])            
+        raise ValueError("No background file given; please check input csv file; possibly files extensions are missing.")        
+        #header_line.append(['No background file given; only const subtracted'])            
 
     if(rebinning):
         header_line.append(['Data has been rebinned; the new range is '+ str(binning[0]) + ', ' + str(binning[1]) + ', ' + str(binning[2])])
