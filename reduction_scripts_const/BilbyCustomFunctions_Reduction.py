@@ -11,6 +11,8 @@ from itertools import product
 import sys
 from mantid.simpleapi import MoveInstrumentComponent, CropWorkspace
 
+# March 2023: attenuation_correction_post_2016_2023 added, attenuators re-callibrated
+# November 2024: def DetShift_after_october2024 added
 
 ##############################################################################
 
@@ -387,7 +389,6 @@ def correction_based_on_experiment(ws_to_correct):
 
 ##############################################################################
 
-
 """ Final detectors' alignement has been done using laser tracker in January, 2016.
     To correct data collected before that, some extra shift hardcoded here, shall be applied """
 
@@ -405,3 +406,42 @@ def det_shift_before_2016 (ws_to_correct):
 
     correction_based_on_experiment(ws_to_correct)
     return ws_to_correct
+    
+    
+##############################################################################
+""" Electronics changed to Mesytec, detector are re-installed and re-aligned """
+def DetShift_after_october2024 (ws):
+
+    #left: difference with SICS: shall be 2.05 closer to the beam (x)
+    #left: average off-center 3.185 (vertical, y)    
+    shift_x_curtainl = -2.05/1000
+    shift_y_curtainl = -5.5/1000  #-3.185/1000 
+    
+    #right: difference with SICS: shall be 1.763 closer to the beam (x)
+    #right: average off-center 3.2529 (vertical, y)
+    shift_x_curtainr = 1.763/1000    
+    shift_y_curtainr = -4.0/1000 #-3.2529/1000
+    
+    #top: average off-center 2.456 (horizontal, x)
+    #top: difference with SICS: shall be 0.585677 closer to the beam (y)      
+    shift_x_curtainu = 1.5/1000 #2.456/1000    
+    shift_y_curtainu = -0.585677/1000
+    
+    #bottom: average off-center 2.048875 (horizontal, x)
+    #bottom: difference with SICS: shall be 9.5589 closer to the beam (y)
+    shift_x_curtaind = 1.0/1000  #2.048875/1000    
+    shift_y_curtaind = 9.5589/1000
+    
+    # rear detector: average off-center -0.15063 (to move up in y)
+    shift_rear_left = -0.15063/1000
+    shift_rear_right = -0.15063/1000    
+
+    MoveInstrumentComponent(ws, 'CurtainLeft',   X = shift_x_curtainl, Y = shift_y_curtainl , Z = 0.0)
+    MoveInstrumentComponent(ws, 'CurtainRight',  X = shift_x_curtainr, Y = shift_y_curtainr , Z = 0.0) 
+    
+    
+    MoveInstrumentComponent(ws, 'CurtainTop',    X = shift_x_curtainu, Y = shift_y_curtainu , Z = 0.0)
+    MoveInstrumentComponent(ws, 'CurtainBottom', X = shift_x_curtaind, Y = shift_y_curtaind , Z = 0.0)
+
+    MoveInstrumentComponent(ws, "BackDetectorLeft", X = 0, Y = shift_rear_left, Z = 0)                       
+    MoveInstrumentComponent(ws, "BackDetectorRight", X = 0, Y = shift_rear_right, Z = 0)     
