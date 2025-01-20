@@ -3,6 +3,8 @@
 # PlotSpectrum works, MergePlots - not anymore
 # Line 308: there were wrong brackets there, therefore it was not printing
 
+# 2024 October: shift corection is different & standard masks are different
+
 # import mantid algorithms
 from mantid.simpleapi import *
  
@@ -17,20 +19,17 @@ ansto_logger = Logger('AnstoDataReduction')
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # INPUT - mandatory from a USER - START##############################################
-red_settings = FileFinder.getFullPath('mantid_reduction_settings_example.csv')
+red_settings = FileFinder.getFullPath('settings_18564.csv')
 
 # INPUT - index of a line with reduction parameters
-index_reduction_settings = ['0'] # INDEX OF THE LINE WITH REDUCTION SETTINGS
+index_reduction_settings = ['11'] # INDEX OF THE LINE WITH REDUCTION SETTINGS
     
 if len(index_reduction_settings) > 1: # must be single choice
     raise ValueError('Please check your choice of reduction settigns; only single value is allowed')
 
 # ID to evaluate - INPUT, in any combination of 'a-b' or ',c', or empty line; empty line means evaluate all files listed in csv
 
-index_files_to_reduce = '0'  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
-
-#Data file with numbers
-path_tube_shift_correction = FileFinder.getFullPath('shift_assembled.csv')
+index_files_to_reduce = '40'  # as per csv_files_to_reduce_list file - LINES' INDEXES FOR FILES TO BE REDUCED
 
 ###########################################################################################
 # INPUT - mandatory from a USER - END
@@ -42,6 +41,7 @@ path_tube_shift_correction = FileFinder.getFullPath('shift_assembled.csv')
 correct_tubes_shift = True
 data_before_2016 = False # curtains moved/ aligned /extra shift applied
 data_before_May_2016 = False # Attenuators changed
+data_before_October_2024 = False # shift_assenbled file changed
 account_for_gravity = True #False
 solid_angle_weighting = True #False
 wide_angle_correction = False
@@ -143,7 +143,6 @@ for current_file in files_to_reduce:
     StartTime = current_file['StartTime']
     EndTime = current_file['EndTime']
 #Errors: if trying to reduce time slice larger than the total time of the measurement:
-#Errors: if trying to reduce time slice larger than the total time of the measurement:
 #Error message & Stop - to addBBY0050276_6.0_empty_cell_long
 
     if ((not StartTime) and (EndTime)) or ((StartTime) and (not EndTime)):
@@ -196,22 +195,7 @@ for current_file in files_to_reduce:
     ws_tranEmp = LoadBBY(ws_emp_file) # empty beam for transmission
     transm_mask = current_file['mask_transmission']+'.xml'
     ws_tranMsk = LoadMask('Bilby', transm_mask)
-
-    # Moving detectors manually, to be sure beam quoters & six panels overlaps matches
-    
-    #move_rearl =    [ -3.5,  2.0, 0.0] # in mm
-    #move_rearr =    [ -3.5,  2.0, 0.0] # in mm
-
-    #MoveInstrumentComponent(ws_sam, "BackDetectorLeft",       X=move_rearl[0]/1000,          Y=move_rearl[1]/1000,        Z=move_rearl[2]/1000) 
-    #MoveInstrumentComponent(ws_sam, "BackDetectorRight",      X=move_rearr[0]/1000,          Y=move_rearr[1]/1000,        Z=move_rearr[2]/1000) 
-
-    #MoveInstrumentComponent(ws_sam, 'CurtainLeft',          X= -7.2/1000,    Y=  3.7/1000,     Z=  36.5/1000)
-    #MoveInstrumentComponent(ws_sam, 'CurtainRight',         X=  4.9/1000,    Y=  4.4/1000,     Z=  41.1/1000)
-    #MoveInstrumentComponent(ws_sam, 'CurtainTop',           X= -2.7/1000,    Y= -2.1/1000,     Z=  34.6/1000)
-    #MoveInstrumentComponent(ws_sam, 'CurtainBottom',        X= -3.8/1000,    Y=  8.6/1000,     Z=  32.3/1000)
-    #MoveInstrumentComponent(ws_sam, 'BackDetectorRight',    X= -2.0/1000,    Y=  0.0/1000,     Z=  45.8/1000) 
-    #MoveInstrumentComponent(ws_sam, 'BackDetectorLeft',     X= -2.0/1000,    Y=  0.0/1000,     Z=  45.8/1000)
-    
+   
     # scaling: attenuation
     att_pos = float(ws_tranSam.run().getProperty('att_pos').value)
     nguide_empty_beam = float(ws_tranEmp.run().getProperty('nguide').value)
@@ -223,10 +207,57 @@ for current_file in files_to_reduce:
 
     # Cd / Al masks shift   
     if correct_tubes_shift:
-        BilbyCustomFunctions_Reduction.correction_tubes_shift(ws_sam, path_tube_shift_correction)    
-
+        if (data_before_October_2024):
+            path_tube_shift_correction = FileFinder.getFullPath('shift_assembled.csv')
+        else:
+            print ('data after Oct 2024')
+            path_tube_shift_correction = FileFinder.getFullPath('shift_assembled_Oct2024.csv')
+            # this one  & 24mm from the correction_tubes_shift shall move to IDF eventually
+            BilbyCustomFunctions_Reduction.correction_curtains_shift_2024(ws_sam, path_tube_shift_correction) # ~24mm shift for curtains only 
+            # BilbyCustomFunctions_Reduction.DetShift_after_october2024(ws_sam) ## this line added on Nov 14 - not in use, see comment on line 228
+        BilbyCustomFunctions_Reduction.correction_tubes_shift(ws_sam, path_tube_shift_correction) # Correction of each tube and rear panels by ~24mm
+ 
+            
     if data_before_2016:
         BilbyCustomFunctions_Reduction.det_shift_before_2016(ws_sam)    
+
+    # Shifts which will be in IDF & SICS & MC - eventually =============================================================================
+    #===================================================================================================================================
+    # Instead of DetShift_after_october2024 - while testing  - shifts based on FARO - but different now
+    # In Nov 14 these values were added to the BilbyCustomFunctions_Reduction.DetShift_after_october2024(ws_sam) but not in use now - changing too often
+    move_curtainl = [ -2.5, -3.185, -0.9] # in mm
+    move_curtainr = [ 1.7,  -3.3,    3.1] # in mm
+    move_curtainu = [ -2.5, -0.6,   -1.2] # in mm
+    move_curtaind = [ 2.04,  9.5,   -2.2] # in mm
+    #move_rearl =    [ -0.3,  0.0,    0.0] # in mm
+    #move_rearr =    [ -0.3,  0.0,    0.0] # in mm
+ 
+    # Updated from Lela 4thJan2025
+    # As per 8 Jan 2025: work in progress which one to take
+    #move_curtainl = [  -2.9, 5.2, 0.0] # in mm
+    #move_curtainr = [ 3.7,  4.2, 0.0] # in mm
+    #move_curtainu = [ -0.7, 3.2, 0.0] # in mm
+    #move_curtaind = [ -1.0,  13.0, 0.0] # in mm   
+ 
+    MoveInstrumentComponent(ws_sam, "CurtainLeft",        X=move_curtainl[0]/1000, Y=move_curtainl[1]/1000.0,  Z=move_curtainl[2]/1000) 
+    MoveInstrumentComponent(ws_sam, "CurtainRight",       X=move_curtainr[0]/1000, Y=move_curtainr[1]/1000.0,  Z=move_curtainr[2]/1000) 
+    MoveInstrumentComponent(ws_sam, "CurtainTop",         X=move_curtainu[0]/1000, Y=move_curtainu[1]/1000.0,  Z=move_curtainu[2]/1000) 
+    MoveInstrumentComponent(ws_sam, "CurtainBottom",      X=move_curtaind[0]/1000, Y=move_curtaind[1]/1000.0,  Z=move_curtaind[2]/1000) 
+    #MoveInstrumentComponent(ws_sam, "BackDetectorLeft",   X=move_rearl[0]/1000,    Y=move_rearl[1]/1000,     Z=move_rearl[2]/1000) 
+    #MoveInstrumentComponent(ws_sam, "BackDetectorRight",  X=move_rearr[0]/1000,    Y=move_rearr[1]/1000,     Z=move_rearr[2]/1000)  
+
+    #===================================================================================================================================    
+    # Beam center correction: quodrants match - this numbers work for certainl L2_det but need to be checked for each
+    MoveInstrumentComponent(ws_sam, "BackDetectorLeft", X = -1.5/1000, Y = 0.0/1000.0, Z = 0)                       
+    MoveInstrumentComponent(ws_sam, "BackDetectorRight", X = -1.5/1000, Y = 0.0/1000.0, Z = 0)
+
+    #===================================================================================================================================   
+    # Sample position in Z (along the beam), to be apply manually when applicable; it is not clear yet how to make this correction automated.
+    samplepos = -8.5 # in mm towards the detector 12pos: +5, 16pos:-8.5
+    MoveInstrumentComponent(ws_sam, "Sample-Holder",  X=0, Y=0, Z=samplepos/1000.0) 
+    
+   #===================================================================================================================================  
+    #==============================================================================================================================================
 
     #Blocked beam
     ws_blocked_beam = 'No blocked beam used'  # default value for the blocked beam; used for the header file
@@ -234,7 +265,14 @@ for current_file in files_to_reduce:
         ws_blocked_beam = current_file['BlockedBeam']+'.tar'
         ws_blk = LoadBBY(ws_blocked_beam)
         if correct_tubes_shift:
-            BilbyCustomFunctions_Reduction.correction_tubes_shift(ws_blk, path_tube_shift_correction)            
+            BilbyCustomFunctions_Reduction.correction_tubes_shift(ws_blk, path_tube_shift_correction)
+            #panels shift the same as the sample
+            MoveInstrumentComponent(ws_blk, "BackDetectorLeft", X = 0.0, Y = 24.4/1000.0, Z = 0)                       
+            MoveInstrumentComponent(ws_blk, "BackDetectorRight", X = 0.0, Y = -24.4/1000.0, Z = 0)            
+            MoveInstrumentComponent(ws_blk, "CurtainLeft", X = 0.0, Y = 24.4/1000.0, Z = 0)                       
+            MoveInstrumentComponent(ws_blk, "CurtainRight", X = 0.0, Y = -24.4/1000.0, Z = 0)
+            MoveInstrumentComponent(ws_blk, "CurtainTop", X = -24.4/1000.0, Y = 0.0, Z = 0)
+            MoveInstrumentComponent(ws_blk, "CurtainBottom", X = 24.4/1000.0, Y = 0.0, Z = 0)   
     else:
          ws_blk = None
 
@@ -285,12 +323,22 @@ for current_file in files_to_reduce:
     if int(standard_mask) != 1: # if extra masking needed
         masks_array = [] 
         name_array = []
-        if int(standard_mask) == 4:
-            masks_array = ['mask_scattering_l_d.xml', 'mask_scattering_l_u.xml', 'mask_scattering_r_d.xml', 'mask_scattering_r_u.xml']
-            name_array = ['l_down', 'l_up', 'r_down', 'r_up']
-        if int(standard_mask) == 6:
-            masks_array = ['mask_scattering_r_left.xml', 'mask_scattering_r_right.xml', 'mask_scattering_top.xml', 'mask_scattering_bottom.xml', 'mask_scattering_left.xml', 'mask_scattering_right.xml']
-            name_array = ['r_left', 'r_right', 'top', 'bottom', 'left', 'right']            
+        if (data_before_October_2024):        
+            if int(standard_mask) == 4:
+                masks_array = ['mask_scattering_l_d.xml', 'mask_scattering_l_u.xml', 'mask_scattering_r_d.xml', 'mask_scattering_r_u.xml']
+                name_array = ['l_down', 'l_up', 'r_down', 'r_up']
+            if int(standard_mask) == 6:
+                masks_array = ['mask_scattering_r_left.xml', 'mask_scattering_r_right.xml', 'mask_scattering_top.xml', 'mask_scattering_bottom.xml', 'mask_scattering_left.xml', 'mask_scattering_right.xml']
+                name_array = ['r_left', 'r_right', 'top', 'bottom', 'left', 'right']            
+        else:
+            print ('data after Oct 2024, updated masks')            
+            if int(standard_mask) == 4:
+                masks_array = ['mask_scattering_l_d.xml', 'mask_scattering_l_u.xml', 'mask_scattering_r_d.xml', 'mask_scattering_r_u.xml']
+                name_array = ['l_down', 'l_up', 'r_down', 'r_up']
+            if int(standard_mask) == 6:
+                masks_array = ['mask_scattering_r_left.xml', 'mask_scattering_r_right.xml', 'mask_scattering_top.xml', 'mask_scattering_bottom.xml', 'mask_scattering_left.xml', 'mask_scattering_right.xml']
+                name_array = ['r_left', 'r_right', 'top', 'bottom', 'left', 'right']                  
+            
     else:
         masks_array = [sam_mask_file]
         

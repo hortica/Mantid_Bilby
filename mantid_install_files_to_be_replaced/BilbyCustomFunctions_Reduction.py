@@ -315,16 +315,37 @@ def correction_tubes_shift(ws_to_correct, path_to_shifts_file):
         # shall be precisely sevel lines; shifts for rear left, rear right, left, right, top, bottom curtains
         # [calculated from 296_Cd_lines_setup1 file] + value for symmetrical shift for entire rear panels
     pixelsize = get_pixel_size()
-
     correct_element_one_stripe("BackDetectorLeft", pixelsize, shifts[0], ws_to_correct)
     correct_element_one_stripe("BackDetectorRight", pixelsize, shifts[1], ws_to_correct)
-    correct_element_one_stripe("CurtainLeft", pixelsize, shifts[2], ws_to_correct)
+    correct_element_one_stripe("CurtainLeft", pixelsize, shifts[2], ws_to_correct)  
     correct_element_one_stripe("CurtainRight", pixelsize, shifts[3], ws_to_correct)
-    correct_element_one_stripe("CurtainTop", pixelsize, shifts[4], ws_to_correct)
+    correct_element_one_stripe("CurtainTop", pixelsize, shifts[4], ws_to_correct)   
     correct_element_one_stripe("CurtainBottom", pixelsize, shifts[5], ws_to_correct)
     move_rear_panels(shifts[6][0], pixelsize, ws_to_correct)
 
-    correction_based_on_experiment(ws_to_correct)
+    #correction_based_on_experiment(ws_to_correct) #It is in here from 2016... not needed anymore - removed in Jan 2025
+
+    return
+
+##############################################################################    
+
+# Using the same shift-table as in "correction_tubes_shift"
+def correction_curtains_shift_2024(ws_to_correct, path_to_shifts_file):
+    """ This function moves each tube and then rear panels as a whole as per numbers recorded in the path_to_shifts_file csv file.
+          The values in the file are obtained from fitting of a few data sets collected using different masks.
+          It is a very good idea do not change the file. """
+
+    shifts = []
+    shifts = read_csv(path_to_shifts_file)
+        # shall be precisely sevel lines; shifts for rear left, rear right, left, right, top, bottom curtains
+        # [calculated from 296_Cd_lines_setup1 file] + value for symmetrical shift for entire rear panels
+    pixelsize = get_pixel_size() ## already in m
+    curtain_shift = float(shifts[6][0]) * pixelsize
+
+    MoveInstrumentComponent(ws_to_correct, "CurtainLeft", X = 0.0, Y = (-1) * curtain_shift, Z = 0)                       
+    MoveInstrumentComponent(ws_to_correct, "CurtainRight", X = 0.0, Y = curtain_shift, Z = 0)
+    MoveInstrumentComponent(ws_to_correct, "CurtainTop", X = curtain_shift, Y = 0.0, Z = 0)
+    MoveInstrumentComponent(ws_to_correct, "CurtainBottom", X = (-1)*curtain_shift, Y = 0.0, Z = 0)      
 
     return
 
@@ -339,16 +360,16 @@ def correct_element_one_stripe(panel, pixelsize, shift, ws):
     tube = ['tube1', 'tube2', 'tube3', 'tube4', 'tube5', 'tube6', 'tube7', 'tube8']
 
     i = 0
-    for ei_pack, t_tube in product(eightpack, tube):
+    for ei_pack, t_tube in product(eightpack, tube): 
         if (panel == "BackDetectorLeft" or panel == "CurtainLeft"):
             direction = 1.0
-            MoveInstrumentComponent(ws, panel + '/' + ei_pack + '/' + t_tube,  X=0, Y=-float(shift[i])*pixelsize*direction, Z=0)
+            MoveInstrumentComponent(ws, panel + '/' + ei_pack + '/' + t_tube,  X=0, Y=-float(shift[i])*pixelsize*direction, Z=0)   
         if (panel == "BackDetectorRight" or panel == "CurtainRight"):
             direction = -1.0
-            MoveInstrumentComponent(ws, panel + '/' + ei_pack + '/' + t_tube,  X=0, Y=-float(shift[i])*pixelsize*direction, Z=0)
+            MoveInstrumentComponent(ws, panel + '/' + ei_pack + '/' + t_tube,  X=0, Y=-float(shift[i])*pixelsize*direction, Z=0)          
         if (panel == "CurtainBottom"):
             direction = 1.0
-            MoveInstrumentComponent(ws, panel + '/' + ei_pack + '/' + t_tube,  X=-float(shift[i])*pixelsize*direction, Y=0, Z=0)
+            MoveInstrumentComponent(ws, panel + '/' + ei_pack + '/' + t_tube,  X=-float(shift[i])*pixelsize*direction, Y=0, Z=0)           
         if (panel == "CurtainTop"):
             direction = -1.0
             MoveInstrumentComponent(ws, panel + '/' + ei_pack + '/' + t_tube,  X=-float(shift[i])*pixelsize*direction, Y=0, Z=0)
@@ -373,7 +394,7 @@ def move_rear_panels(shift, pixelsize, ws):
 
 ##############################################################################
 
-
+# Dec 2024: the call moved to the reducer, to split from the Cd shifts only
 def correction_based_on_experiment(ws_to_correct):
     """ The function to move curtains, based on fits/analysis of a massive set of AgBeh and liquid crystals data
         collected on 6 Oct 2016. Previous Laser tracker data has not picked up these imperfections."""
@@ -409,7 +430,7 @@ def det_shift_before_2016 (ws_to_correct):
     
     
 ##############################################################################
-""" Electronics changed to Mesytec, detector are re-installed and re-aligned """
+""" Electronics changed to Mesytec, detector are re-installed and re-aligned """ #Jan 2025: not in use, added to the Reducer: still cnahging too often
 def DetShift_after_october2024 (ws):
 
     #left: difference with SICS: shall be 2.05 closer to the beam (x)
