@@ -7,7 +7,7 @@ Instruction, scripts and test files for [BILBY SANS instrument](https://www.anst
 
 ### mantid_install_files_to_be_replaced
 #### This folder contains scrips which have to be replaced in the folder where Mantid is installed; the plan is to update the main Mantid repo - once done, this step will not be needed
-- [`SANSDataProcessor.py`](/mantid_install_files_to_be_replaced/SANSDataProcessor.py) is the main script sitting in the following folder:[root]\MantidInstall\plugins\python\algorithms\WorkflowAlgorithms
+- [`SANSDataProcessor.py`](/mantid_install_files_to_be_replaced/BilbySANSDataProcessor.py) is the main script sitting in the following folder:[root]\MantidInstall\plugins\python\algorithms\WorkflowAlgorithms
 - [`BilbyCustomFunctions_Reduction.py`](/mantid_install_files_to_be_replaced/BilbyCustomFunctions_Reduction.py) is a set of subroutines used for the Bilby data reduction
 - [`BILBY_Parameters.xml`](/mantid_install_files_to_be_replaced/BILBY_Parameters.xml) Parameters file
 - [`BILBY_Definition_Jan2025_summary.xml`](/mantid_install_files_to_be_replaced/BILBY_Definition_Jan2025_summary.xml) Bilby IDF file, valid from October 2024
