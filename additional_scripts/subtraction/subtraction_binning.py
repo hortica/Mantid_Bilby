@@ -112,8 +112,9 @@ for current_file in files_to_subtract:
         sub_file_output_short = sample_file[0:(len(sample_file.strip())-4)] + name_suffix + "_sub.dat"
     sub_file_output = os.path.join(os.path.dirname(subtraction_list), sub_file_output_short) # path for the output file, based on location of the initial list
 
-# creating header from input data
+    # open output file
     with open(sub_file_output, 'w+') as f_out:
+        # writing the header
         header_line_first = (['Sample file name: ' + sample_file]) # record first line separately to be sure file is re-written
         wr = csv.writer(f_out, delimiter=',', lineterminator='\n')
         wr.writerow(header_line_first)
@@ -135,9 +136,9 @@ for current_file in files_to_subtract:
             wr = csv.writer(f_out, delimiter=',', lineterminator='\n')
             wr.writerow(line)
 
-# creating new file, where X, Y, ErrY are taken from scaled/subtracted data, but the Xerror - i.e. sigmaQ - are copied from the original sample data
+        # creating new file, where X, Y, ErrY are taken from scaled/subtracted data, but the Xerror - i.e. sigmaQ - are copied from the original sample data
         line_new_file = []
-    #for i in range(number_of_bins_sample):
+        #for i in range(number_of_bins_sample):
         #ws_sample_const_sub.blocksize()
         for i in range(subtracted_data.blocksize()):        
             s = str(subtracted_data.readY(0)[i])
@@ -146,7 +147,7 @@ for current_file in files_to_subtract:
                                      "%10.8f" %subtracted_data.readE(0)[i],  "%10.8f" %ws_sample_const_sub.readDx(0)[i]]
                 wr = csv.writer(f_out, delimiter=',', lineterminator='\n')
                 wr.writerow(line_new_file)
-
+    f_out.close()
 # Just subtracted data are loaded back to Mantid
 # It is still a question if to keep it here
 # For good practice, make a function out of this script and make this parameter a user' choice
