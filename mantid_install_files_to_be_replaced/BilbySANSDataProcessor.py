@@ -203,8 +203,6 @@ class BilbySANSDataProcessor(DataProcessorAlgorithm):
                 inputs["SensitivityCorrectionMatrix"] = "must have same number of spectra as the InputWorkspace"
             elif not ws_sen.isHistogramData():
                 inputs["SensitivityCorrectionMatrix"] = "has to be a histogram"
-            #elif ws_sen.getAxis(0).getUnit().symbol():
-            #    inputs["SensitivityCorrectionMatrix"] = "has to be unitless"
 
         tran_histograms = ws_tranSam.getNumberHistograms()
         if tran_histograms <= 0:
@@ -359,7 +357,7 @@ class BilbySANSDataProcessor(DataProcessorAlgorithm):
         scale_full = scale * (ws_emp_time / ws_sam_time)
         # extra multiplier is needed because measured transmission is ~5% lower;
         # we need to divide result by lower number, hence need to lowering the final result, i.e. divide by 1.05
-        f = self._single_valued_ws(scale_full / (thickness * 1.0)) #1.05 before Dec 2024
+        f = self._single_valued_ws(scale_full / (thickness * 1.0)) #1.05 before Dec 2024, when detectors been replaced
 
         if reduce_2d:
             q_max = binning_q[2]
